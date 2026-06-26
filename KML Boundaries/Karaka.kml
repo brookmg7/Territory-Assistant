@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Karaka</name>
+    <Style id="poly-000000-1200-77-normal">
+      <LineStyle>
+        <color>ff000000</color>
+        <width>1.2</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>4d000000</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+    </Style>
+    <Style id="poly-000000-1200-77-highlight">
+      <LineStyle>
+        <color>ff000000</color>
+        <width>1.8</width>
+      </LineStyle>
+      <PolyStyle>
+        <color>4d000000</color>
+        <fill>1</fill>
+        <outline>1</outline>
+      </PolyStyle>
+    </Style>
+    <StyleMap id="poly-000000-1200-77">
+      <Pair>
+        <key>normal</key>
+        <styleUrl>#poly-000000-1200-77-normal</styleUrl>
+      </Pair>
+      <Pair>
+        <key>highlight</key>
+        <styleUrl>#poly-000000-1200-77-highlight</styleUrl>
+      </Pair>
+    </StyleMap>
+    <Placemark>
+      <name>Polygon 2</name>
+      <description>karaka</description>
+      <styleUrl>#poly-000000-1200-77</styleUrl>
+      <Polygon>
+        <outerBoundaryIs>
+          <LinearRing>
+            <tessellate>1</tessellate>
+            <coordinates>
+              174.929314,-37.0737,0
+              174.923447,-37.059517,0
+              174.9206431,-37.0599676,0
+              174.9130042,-37.0585292,0
+              174.9028761,-37.0619539,0
+              174.9027903,-37.069967,0
+              174.9021037,-37.0748977,0
+              174.8992713,-37.0808552,0
+              174.9000437,-37.085032,0
+              174.9038203,-37.0874969,0
+              174.9055369,-37.0867438,0
+              174.9094851,-37.0857852,0
+              174.9153216,-37.089551,0
+              174.922224,-37.084322,0
+              174.923024,-37.084283,0
+              174.923457,-37.085402,0
+              174.92496,-37.085038,0
+              174.925748,-37.087047,0
+              174.927254,-37.086671,0
+              174.92683,-37.085385,0
+              174.928921,-37.084863,0
+              174.928185,-37.082966,0
+              174.93359,-37.081435,0
+              174.93186,-37.079169,0
+              174.929314,-37.0737,0
+            </coordinates>
+          </LinearRing>
+        </outerBoundaryIs>
+      </Polygon>
+    </Placemark>
+  </Document>
+</kml>

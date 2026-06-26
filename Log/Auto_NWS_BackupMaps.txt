@@ -1,0 +1,14 @@
+2026-04-07 16:31:24 | ================================================================================
+2026-04-07 16:31:24 | backup_first_map_to_csv() START
+2026-04-07 16:31:24 | NWS_EXE_PATH: C:\Program Files\New World Scheduler\NW Scheduler.exe
+2026-04-07 16:31:24 | SAVE_DIR: C:\Users\brook\OneDrive\Desktop\Territory Assistant\Territory_Maps
+2026-04-07 16:31:24 | [STEP] START: Start/attach to NWS
+2026-04-07 16:31:25 | [STEP] FAIL: Start/attach to NWS :: FileNotFoundError('NW Scheduler EXE not found: C:\\Program Files\\New World Scheduler\\NW Scheduler.exe')
+2026-04-07 16:31:25 | Traceback (most recent call last):
+  File "C:\Users\brook\OneDrive\Desktop\Territory Assistant\Auto_NWS_uia_retry.py", line 90, in _step
+    out = fn()
+          ^^^^
+  File "C:\Users\brook\OneDrive\Desktop\Territory Assistant\Auto_NWS_uia_app.py", line 266, in start_or_connect_nws
+    raise FileNotFoundError(f"NW Scheduler EXE not found: {NWS_EXE_PATH}")
+FileNotFoundError: NW Scheduler EXE not found: C:\Program Files\New World Scheduler\NW Scheduler.exe
+

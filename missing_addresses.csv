@@ -1,0 +1,4 @@
+TerritoryID,TerritoryNumber,CategoryCode,Category,TerritoryAddressID,ApartmentNumber,Number,Street,Suburb,PostalCode,State,Name,Phone,Type,Status,NotHomeAttempt,Date1,Date2,Date3,Date4,Date5,Language,Latitude,Longitude,Notes,NotesFromPublisher,Final Status
+4755744,104,,,3285852,,,Arawai Terrace,Papakura,2110,Auckland,,,House,Available,0,,,,,,,-37.05182897,174.971308124714,,,Missing Addresses
+4755744,104,,,1203728,,,Te Aparangi Crescent,Papakura,2110,Auckland,,,House,Available,0,,,,,,,-37.0504786,174.9389166,,,Missing Addresses
+4755744,104,,,3582255,,,Te Aparangi Road,Papakura,2110,Auckland,,,House,Available,0,,,,,,,-37.0504786,174.9389166,,,Missing Addresses

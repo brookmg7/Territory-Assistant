@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+  <name>Flat Bush (Polygon: Official_Shp) Section 2</name>
+  <Placemark>
+    <name>Flat Bush (Polygon: Official_Shp) Section 2</name>
+    <Style>
+      <LineStyle><color>ffff0000</color><width>2</width></LineStyle>
+      <PolyStyle><color>66ff0000</color></PolyStyle>
+    </Style>
+    <Polygon>
+      <tessellate>1</tessellate>
+      <outerBoundaryIs>
+        <LinearRing>
+          <coordinates>174.9052671969641,-36.96433882948153,100 174.907072,-36.964639,100 174.910355,-36.965359,100 174.912179,-36.965942,100 174.914046,-36.965959,100 174.916685,-36.966336,100 174.917543,-36.96673,100 174.919346,-36.967056,100 174.922414,-36.967553,100 174.924598,-36.967485,100 174.924219,-36.968676,100 174.922504,-36.975037,100 174.917524,-36.974059,100 174.904642,-36.971847,100 174.906702,-36.964613,100 174.9052671969641,-36.96433882948153,100</coordinates>
+        </LinearRing>
+      </outerBoundaryIs>
+    </Polygon>
+  </Placemark>
+</Document>
+</kml>

@@ -1,0 +1,28 @@
+Split Script Report
+====================
+Source file: Clean_NewWorldScheduler.py
+Parts created: 4
+Export directory: C:\Users\brook\OneDrive\Desktop\Territory Assistant\Exported Files
+
+Deleted files before split:
+ - Clean_NewWorldScheduler - Part 1.py
+ - Clean_NewWorldScheduler - Part 2.py
+ - Clean_NewWorldScheduler - Part 3.py
+ - Clean_NewWorldScheduler - Part 4.py
+
+Original total lines: 9627
+Part 1 lines: 2406 (+headers/footers → 2410)
+Part 2 lines: 2422 (+headers/footers → 2424)
+Part 3 lines: 2381 (+headers/footers → 2383)
+Part 4 lines: 2418 (+headers/footers → 2420)
+Sum of parts (content only): 9627
+Difference (sum - original, content only): 0
+Result: Split successful.
+
+Files:
+ - Clean_NewWorldScheduler - Part 1.py
+ - Clean_NewWorldScheduler - Part 2.py
+ - Clean_NewWorldScheduler - Part 3.py
+ - Clean_NewWorldScheduler - Part 4.py
+
+Note: Only Part 1 includes the special hint and total-parts line; all parts include start/end markers.
