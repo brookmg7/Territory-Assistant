@@ -1,16 +1,16 @@
-2026-06-26 14:36:37 | INFO  | run='1782441397-7712' | GoogleSheets_Log.init_logger | LOGGER_INIT | log_path='C:\\Users\\brook\\OneDrive\\Desktop\\Territory Assistant\\Log\\GoogleSheets_All.txt', level='INFO', echo=True, append=False
-2026-06-26 14:36:37 | INFO  | run=1782441397-7712 | __main__.<module> | MODULE_LOAD | file='C:\\Users\\brook\\OneDrive\\Desktop\\Territory Assistant\\GoogleSheets_Menu.py', pid=7712
-2026-06-26 14:36:37 | INFO  | run=1782441397-7712 | __main__.<module> | STAGE: GoogleSheets_Menu loaded
-2026-06-26 14:36:37 | INFO  | run=1782441397-7712 | GoogleSheets_Utils.<module> | MODULE_LOAD | file='C:\\Users\\brook\\OneDrive\\Desktop\\Territory Assistant\\GoogleSheets_Utils.py', pid=7712
-2026-06-26 14:36:37 | INFO  | run=1782441397-7712 | GoogleSheets_CoreLite.<module> | MODULE_LOAD | file='C:\\Users\\brook\\OneDrive\\Desktop\\Territory Assistant\\GoogleSheets_CoreLite.py', pid=7712
-2026-06-26 14:36:37 | INFO  | run=1782441397-7712 | GoogleSheets_CoreLite_Polygons.<module> | MODULE_LOAD | file='C:\\Users\\brook\\OneDrive\\Desktop\\Territory Assistant\\GoogleSheets_CoreLite_Polygons.py', pid=7712
-2026-06-26 14:36:38 | INFO  | run=1782441397-7712 | GoogleSheets_CoreLite_Geocode.<module> | MODULE_LOAD | file='C:\\Users\\brook\\OneDrive\\Desktop\\Territory Assistant\\GoogleSheets_CoreLite_Geocode.py', pid=7712
-2026-06-26 14:36:38 | INFO  | run=1782441397-7712 | GoogleSheets_Flows.<module> | MODULE_LOAD | file='C:\\Users\\brook\\OneDrive\\Desktop\\Territory Assistant\\GoogleSheets_Flows.py', pid=7712
-2026-06-26 14:36:38 | INFO  | run=1782441397-7712 | GoogleSheets_Master.<module> | MODULE_LOAD | file='C:\\Users\\brook\\OneDrive\\Desktop\\Territory Assistant\\GoogleSheets_Master.py', pid=7712
-2026-06-26 14:36:38 | INFO  | run=1782441397-7712 | GoogleSheets_Verify.<module> | MODULE_LOAD | file='C:\\Users\\brook\\OneDrive\\Desktop\\Territory Assistant\\GoogleSheets_Verify.py', pid=7712
-2026-06-26 14:36:38 | INFO  | run=1782441397-7712 | GoogleSheets_Flows._maybe_autowrap_flows_module | DECISION: AUTOWRAP_FLOWS_CHECK | enabled=False
-2026-06-26 14:36:38 | INFO  | run=1782441397-7712 | __main__._ensure_quit_listener_started_once | DECISION: QUIT_LISTENER_STARTING_VIA_CORELITE
-2026-06-26 14:36:38 | INFO  | run=1782441397-7712 | GoogleSheets_CoreLite.listen_for_quit_key | DECISION: QUIT_KEY_LISTENER_STARTED
-2026-06-26 14:36:38 | INFO  | run=1782441397-7712 | GoogleSheets_CoreLite.start_quit_key_listener_once | DECISION: QUIT_KEY_LISTENER_THREAD_STARTED
-2026-06-26 14:36:38 | INFO  | run=1782441397-7712 | __main__._ensure_quit_listener_started_once | DECISION: QUIT_LISTENER_STARTED
-2026-06-26 14:36:38 | INFO  | run=1782441397-7712 | __main__.open_menu | STAGE: GoogleSheets menu loop entered
+2026-07-02 10:52:25 | INFO  | run='1782946345-22192' | GoogleSheets_Log.init_logger | LOGGER_INIT | log_path='C:\\Users\\brook\\OneDrive\\Desktop\\Territory Assistant\\Log\\GoogleSheets_All.txt', level='INFO', echo=True, append=False
+2026-07-02 10:52:25 | INFO  | run=1782946345-22192 | __main__.<module> | MODULE_LOAD | file='C:\\Users\\brook\\OneDrive\\Desktop\\Territory Assistant\\GoogleSheets_Menu.py', pid=22192
+2026-07-02 10:52:25 | INFO  | run=1782946345-22192 | __main__.<module> | STAGE: GoogleSheets_Menu loaded
+2026-07-02 10:52:26 | INFO  | run=1782946345-22192 | GoogleSheets_Utils.<module> | MODULE_LOAD | file='C:\\Users\\brook\\OneDrive\\Desktop\\Territory Assistant\\GoogleSheets_Utils.py', pid=22192
+2026-07-02 10:52:26 | INFO  | run=1782946345-22192 | GoogleSheets_CoreLite.<module> | MODULE_LOAD | file='C:\\Users\\brook\\OneDrive\\Desktop\\Territory Assistant\\GoogleSheets_CoreLite.py', pid=22192
+2026-07-02 10:52:26 | INFO  | run=1782946345-22192 | GoogleSheets_CoreLite_Polygons.<module> | MODULE_LOAD | file='C:\\Users\\brook\\OneDrive\\Desktop\\Territory Assistant\\GoogleSheets_CoreLite_Polygons.py', pid=22192
+2026-07-02 10:52:26 | INFO  | run=1782946345-22192 | GoogleSheets_CoreLite_Geocode.<module> | MODULE_LOAD | file='C:\\Users\\brook\\OneDrive\\Desktop\\Territory Assistant\\GoogleSheets_CoreLite_Geocode.py', pid=22192
+2026-07-02 10:52:26 | INFO  | run=1782946345-22192 | GoogleSheets_Flows.<module> | MODULE_LOAD | file='C:\\Users\\brook\\OneDrive\\Desktop\\Territory Assistant\\GoogleSheets_Flows.py', pid=22192
+2026-07-02 10:52:26 | INFO  | run=1782946345-22192 | GoogleSheets_Master.<module> | MODULE_LOAD | file='C:\\Users\\brook\\OneDrive\\Desktop\\Territory Assistant\\GoogleSheets_Master.py', pid=22192
+2026-07-02 10:52:26 | INFO  | run=1782946345-22192 | GoogleSheets_Verify.<module> | MODULE_LOAD | file='C:\\Users\\brook\\OneDrive\\Desktop\\Territory Assistant\\GoogleSheets_Verify.py', pid=22192
+2026-07-02 10:52:26 | INFO  | run=1782946345-22192 | GoogleSheets_Flows._maybe_autowrap_flows_module | DECISION: AUTOWRAP_FLOWS_CHECK | enabled=False
+2026-07-02 10:52:26 | INFO  | run=1782946345-22192 | __main__._ensure_quit_listener_started_once | DECISION: QUIT_LISTENER_STARTING_VIA_CORELITE
+2026-07-02 10:52:26 | INFO  | run=1782946345-22192 | GoogleSheets_CoreLite.listen_for_quit_key | DECISION: QUIT_KEY_LISTENER_STARTED
+2026-07-02 10:52:26 | INFO  | run=1782946345-22192 | GoogleSheets_CoreLite.start_quit_key_listener_once | DECISION: QUIT_KEY_LISTENER_THREAD_STARTED
+2026-07-02 10:52:26 | INFO  | run=1782946345-22192 | __main__._ensure_quit_listener_started_once | DECISION: QUIT_LISTENER_STARTED
+2026-07-02 10:52:26 | INFO  | run=1782946345-22192 | __main__.open_menu | STAGE: GoogleSheets menu loop entered

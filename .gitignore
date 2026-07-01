@@ -1,4 +1,14 @@
 # ============================================================
+# Territory Assistant .gitignore
+# ============================================================
+
+# GitHub normal Git file limit is 100 MB per file.
+# These two local database files are too large for normal GitHub upload.
+# Keep them on the computer only.
+
+Street Database/linz_auckland_addresses.csv
+Street Database/linz_auckland.sqlite
+# ============================================================
 # FileSave Generator standard generated-output ignores
 # ============================================================
 .idea/
@@ -47,16 +57,3 @@ mode10_sequential_batches/
 managed_components/
 sdkconfig.old
 build*/
-
-# ============================================================
-# Territory Assistant large local database files
-# Keep these local only. GitHub normal Git limit is 100MB/file.
-# ============================================================
-Street Database/linz_auckland_addresses.csv
-Street Database/linz_auckland.sqlite
-
-# Temporary Office lock files
-~$*
-~$*.xlsx
-*.tmp
-*.temp
