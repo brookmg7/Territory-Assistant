@@ -43,8 +43,6 @@ runtime_output/
 **/runtime_output/
 Live_Reports/
 **/Live_Reports/
-historical_ohlc/
-**/historical_ohlc/
 historical_replay_*.csv
 historical_replay_*.jsonl
 historical_replay_*.log
@@ -52,8 +50,15 @@ historical_replay_config.generated.json
 historical_replay_manifest.json
 historical_replay_event_rows.jsonl
 historical_replay_symbol_rows.jsonl
-mode10_a_grade_history/
 mode10_sequential_batches/
 managed_components/
 sdkconfig.old
 build*/
+
+# ============================================================
+# FileSave Generator standard generated-output ignores
+# ============================================================
+Live_Reports/**/database/live_trade_events_*.jsonl
+Live_Reports/**/archived_trade_evidence/archive_*.json
+Live_Reports/**/archived_trade_evidence/*.jsonl
+Live_Reports/**/archived_trade_evidence/*.csv
