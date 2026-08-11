@@ -48,7 +48,7 @@ _NOISY_LOCK = threading.Lock()
 # Config (can be overridden)
 # ----------------------------
 DEFAULT_LOG_DIRNAME = "Log"
-DEFAULT_LOG_FILENAME = "GoogleSheets_All.txt"
+DEFAULT_LOG_FILENAME = "Run_GoogleSheets_support_log.txt"
 
 # Truncation so logs don't explode
 MAX_REPR = 600          # max chars for args/return repr
@@ -258,61 +258,67 @@ def init_logger(
     level: str = "INFO",
 ) -> Path:
     """
-    Initialize global log path once. Safe to call multiple times.
-    If app_root is None, it infers from frozen exe or current file.
+    Initialize the one shared support log.
 
-    NEW DEFAULT (per Brook):
-    - The log file is TRUNCATED on each new program run (so it is "replaced").
-    - If you ever want to append instead, set:
-          GS_LOG_APPEND=1
+    Single-log policy:
+    - If GS_SUPPORT_LOG is set by Run_GoogleSheets.bat, use that exact file.
+    - Otherwise use:
+          <APP_ROOT>/Log/Run_GoogleSheets_support_log.txt
+
+    Why:
+    - BAT startup writes to the support log first.
+    - GoogleSheets_Menu.py writes early Python setup checks to the same file.
+    - GoogleSheets_Log.py writes all runtime app logs to the same file.
+    - Result: one file contains everything needed for support.
+
+    Important:
+    - When using the support log, always append.
+      Do NOT truncate here, because the BAT/Menu may already wrote startup info.
+    - The BAT can still create a fresh support log at the beginning of each run.
     """
     global _LOG_PATH, _ECHO_CONSOLE, _LEVEL, _RUN_ID
 
     if app_root is None:
-        # robust app_root inference (works in .py and PyInstaller)
         if getattr(sys, "frozen", False):
             app_root = Path(sys.executable).resolve().parent
         else:
-            # fallback: this module's folder (not cwd)
             app_root = Path(__file__).resolve().parent
 
     lv = (level or "INFO").upper().strip()
     _LEVEL = {"DEBUG": 10, "INFO": 20, "WARN": 30, "WARNING": 30, "ERROR": 40}.get(lv, 20)
 
-    # Controls console echo policy (we still filter what is printed)
     _ECHO_CONSOLE = bool(echo_console)
 
-    log_folder = (app_root / log_dir)
-    log_folder.mkdir(parents=True, exist_ok=True)
-
-    new_path = (log_folder / filename)
-
-    # If already initialized in this process, do nothing (prevents re-init mid-run)
+    # If already initialized in this process, do nothing.
     if _LOG_PATH is not None:
         return _LOG_PATH
+
+    # Prefer the BAT-created support log.
+    raw_support_log = os.environ.get("GS_SUPPORT_LOG", "").strip().strip('"')
+
+    if raw_support_log:
+        new_path = Path(raw_support_log)
+    else:
+        log_folder = app_root / log_dir
+        new_path = log_folder / filename
 
     _LOG_PATH = new_path
     _RUN_ID = f"{int(time.time())}-{os.getpid()}"
 
-    # ✅ Default is "replace each run"
-    append = os.environ.get("GS_LOG_APPEND", "").strip().lower() in ("1", "true", "yes", "y")
+    # Always append to the support log.
+    # The BAT is responsible for creating a fresh file at the start of a run.
+    append = True
 
-    # Create or replace file (never crash app if this fails)
     with _LOCK:
         try:
-            if append:
-                # Ensure file exists (append mode)
-                _LOG_PATH.open("a", encoding="utf-8", errors="replace").close()
-            else:
-                # Truncate/recreate every run (replace)
-                _LOG_PATH.open("w", encoding="utf-8", errors="replace").close()
+            _LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+            _LOG_PATH.open("a", encoding="utf-8", errors="replace").close()
         except Exception:
             pass
 
-        # mark init (direct file write; avoids recursion + ordering issues)
         line = (
             f"{_now()} | INFO  | run={_safe_repr(_RUN_ID)} | {__name__}.init_logger | LOGGER_INIT"
-            f" | log_path={_safe_repr(str(_LOG_PATH))}, level={_safe_repr(lv)}, echo={_safe_repr(_ECHO_CONSOLE)}, append={_safe_repr(append)}"
+            f" | log_path={_safe_repr(str(_LOG_PATH))}, level={_safe_repr(lv)}, echo={_safe_repr(_ECHO_CONSOLE)}, append={_safe_repr(append)}, single_log=True"
         )
         line = _clip(line, MAX_LINE)
 
@@ -459,11 +465,10 @@ def install_excepthook() -> None:
 
 def _write_line(line: str, *, echo: bool, console_override: Optional[str] = None) -> None:
     """
-    Write a single log line to file.
+    Write a single log line to the one shared support log.
 
-    If echo is True, prints a filtered console line:
-    - Uses console_override if provided (legacy style)
-    - Else prints the raw line (rare fallback)
+    All runtime app logs go to:
+        Log\Run_GoogleSheets_support_log.txt
 
     Never raises: logging must not break app behavior.
     """
@@ -478,7 +483,6 @@ def _write_line(line: str, *, echo: bool, console_override: Optional[str] = None
         try:
             init_logger(app_root=fallback_root)
         except Exception:
-            # If even init fails, give up quietly
             return
 
     if _LOG_PATH is None:
@@ -486,16 +490,13 @@ def _write_line(line: str, *, echo: bool, console_override: Optional[str] = None
 
     line = _clip(line, MAX_LINE)
 
-    # File write (guarded)
     try:
         with _LOCK:
             with _LOG_PATH.open("a", encoding="utf-8", errors="replace") as f:
                 f.write(line + "\n")
     except Exception:
-        # Never crash the program due to logging
         pass
 
-    # Console echo (guarded)
     if _ECHO_CONSOLE and echo:
         out = console_override or line
         try:

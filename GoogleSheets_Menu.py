@@ -234,6 +234,163 @@ def _app_root() -> Path:
 APP_ROOT = _app_root()
 
 # =============================================================================
+# Support log bootstrap
+# =============================================================================
+
+def _support_log_path() -> Path:
+    """
+    Support log used by Run_GoogleSheets.bat and early Python startup.
+
+    This is separate from GoogleSheets_All.txt because some startup problems can
+    happen before GoogleSheets_Log is initialized.
+    """
+    raw = os.environ.get("GS_SUPPORT_LOG", "").strip().strip('"')
+    if raw:
+        return Path(raw)
+    return APP_ROOT / "Log" / "Run_GoogleSheets_support_log.txt"
+
+
+def _support_log(message: str) -> None:
+    """
+    Best-effort early support logger.
+    Never raises.
+    """
+    try:
+        p = _support_log_path()
+        p.parent.mkdir(parents=True, exist_ok=True)
+        ts = time.strftime("%Y-%m-%d %H:%M:%S")
+        with p.open("a", encoding="utf-8", errors="replace") as f:
+            f.write(f"{ts} | {message}\n")
+    except Exception:
+        pass
+
+
+def _support_section(title: str) -> None:
+    _support_log("")
+    _support_log("=" * 78)
+    _support_log(str(title))
+    _support_log("=" * 78)
+
+
+def _support_run_capture(label: str, cmd: list[str], *, timeout: int = 30, max_lines: int = 300) -> None:
+    """
+    Run a small diagnostic command and write output to support log.
+
+    Used only for diagnostics, not for the main app workflow.
+    """
+    try:
+        _support_log(f"RUN_DIAGNOSTIC_START: {label} | cmd={cmd!r}")
+        completed = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=timeout,
+        )
+        _support_log(f"RUN_DIAGNOSTIC_DONE: {label} | returncode={completed.returncode}")
+
+        out = completed.stdout or ""
+        lines = out.splitlines()
+        for line in lines[:max_lines]:
+            _support_log(f"{label}: {line}")
+
+        if len(lines) > max_lines:
+            _support_log(f"{label}: ... truncated {len(lines) - max_lines} extra lines")
+
+    except Exception as e:
+        _support_log(f"RUN_DIAGNOSTIC_FAILED: {label} | error={e!r}")
+
+
+def _write_python_support_snapshot() -> None:
+    """
+    Write one early Python startup snapshot.
+
+    This runs before GoogleSheets_Log initializes, so support still has useful
+    details if dependency setup or imports fail.
+    """
+    if os.environ.get("GS_PY_SUPPORT_SNAPSHOT_DONE") == "1":
+        return
+
+    os.environ["GS_PY_SUPPORT_SNAPSHOT_DONE"] = "1"
+
+    try:
+        import platform
+        import struct
+        import getpass
+
+        _support_section("Python startup snapshot")
+
+        _support_log(f"APP_ROOT={APP_ROOT}")
+        _support_log(f"cwd={os.getcwd()}")
+        _support_log(f"script_file={Path(__file__).resolve()}")
+        _support_log(f"sys.executable={sys.executable}")
+        _support_log(f"sys.version={sys.version.replace(chr(10), ' ')}")
+        _support_log(f"platform={platform.platform()}")
+        _support_log(f"machine={platform.machine()}")
+        _support_log(f"python_bits={struct.calcsize('P') * 8}")
+        _support_log(f"user={getpass.getuser()}")
+        _support_log(f"GS_RUN_FROM_BAT={os.environ.get('GS_RUN_FROM_BAT', '')}")
+        _support_log(f"GS_LOG_LEVEL={os.environ.get('GS_LOG_LEVEL', '')}")
+        _support_log(f"GS_AUTOWRAP_FLOWS={os.environ.get('GS_AUTOWRAP_FLOWS', '')}")
+        _support_log(f"GS_SUPPORT_LOG={os.environ.get('GS_SUPPORT_LOG', '')}")
+
+        _support_section("sys.path")
+        for p in sys.path:
+            _support_log(str(p))
+
+        _support_section("Required local files")
+        required_local_files = [
+            "GoogleSheets_Menu.py",
+            "GoogleSheets_Flows.py",
+            "GoogleSheets_Utils.py",
+            "GoogleSheets_Master.py",
+            "GoogleSheets_Verify.py",
+            "GoogleSheets_CoreLite.py",
+            "GoogleSheets_Log.py",
+            "GoogleSheets_CoreLite_Geocode.py",
+            "GoogleSheets_CoreLite_Polygons.py",
+        ]
+
+        for rel in required_local_files:
+            p = APP_ROOT / rel
+            _support_log(f"{'FOUND' if p.is_file() else 'MISSING'} file: {rel} | {p}")
+
+        _support_section("Runtime folders / files")
+        runtime_items = [
+            "input_googlesheets.csv",
+            "KML Boundaries",
+            "Master",
+            "Street Database",
+            "New_Addresses_By_Suburb",
+            "Log",
+        ]
+
+        for rel in runtime_items:
+            p = APP_ROOT / rel
+            _support_log(f"{'FOUND' if p.exists() else 'MISSING'} item: {rel} | {p}")
+
+        _support_section("Required package import check")
+        try:
+            for pip_name, import_name in REQUIRED_PACKAGES:
+                try:
+                    spec = importlib.util.find_spec(import_name)
+                    _support_log(f"{'OK' if spec is not None else 'MISSING'} package: {pip_name} import={import_name}")
+                except Exception as e:
+                    _support_log(f"ERROR package check: {pip_name} import={import_name} error={e!r}")
+        except Exception as e:
+            _support_log(f"Package list check failed: {e!r}")
+
+        _support_section("Python / pip diagnostics")
+        _support_run_capture("python_version", [sys.executable, "--version"], timeout=15)
+        _support_run_capture("pip_version", [sys.executable, "-m", "pip", "--version"], timeout=20)
+        _support_run_capture("pip_freeze", [sys.executable, "-m", "pip", "list", "--format=freeze"], timeout=60, max_lines=500)
+
+    except Exception as e:
+        _support_log(f"PYTHON_SUPPORT_SNAPSHOT_FAILED: {e!r}")
+
+# =============================================================================
 # Dependency bootstrap (auto install missing packages)
 # =============================================================================
 
@@ -464,31 +621,17 @@ def _check_runtime_requirements(print_report: bool = True) -> dict:
 
 def _restart_application_after_dependency_install() -> None:
     """
-    Restart this menu after dependency installation.
+    Ask the BAT launcher to restart the app in the SAME window.
 
-    Why this helper exists:
-    - os.execv can break on Windows paths with spaces in some launcher contexts.
-    - This uses subprocess with an argument list, so:
-        C:\\Users\\brook\\OneDrive\\Desktop\\Territory Assistant\\GoogleSheets_Menu.py
-      stays one argument.
+    Why:
+    - Keeps all setup output in one visible window.
+    - Avoids spawning a second Python process with subprocess.Popen().
+    - Lets Run_GoogleSheets.bat log the restart clearly.
+    - Exit code 75 is handled by the newer BAT file.
     """
-    script_path = Path(__file__).resolve()
-
-    cmd = [
-        sys.executable,
-        "-u",
-        str(script_path),
-        *sys.argv[1:],
-    ]
-
-    try:
-        subprocess.Popen(cmd, cwd=str(APP_ROOT))
-    except Exception:
-        print("\n⚠️ Packages installed, but automatic restart failed.", flush=True)
-        print("Please close this window and run Run_GoogleSheets.bat again.", flush=True)
-        raise
-
-    raise SystemExit(0)
+    print("\n✅ Packages installed.", flush=True)
+    print("Restarting application in the same window...\n", flush=True)
+    raise SystemExit(75)
 
 def _install_or_repair_python_with_winget() -> None:
     """
@@ -566,20 +709,19 @@ def _ensure_dependencies_installed() -> None:
     Behavior:
     - Runs automatically before the menu opens.
     - Prints the full requirements checklist.
+    - Logs setup details to the support log.
     - Stops if Python version is too old.
     - If Python is too old, asks Y/N to install/repair Python with winget.
     - Stops if required local project files are missing.
     - If pip packages are missing, asks user Y/N before installing.
     - Installs only missing pip packages.
     - Restarts safely after package installation.
-
-    Important:
-    - This can install Python packages only after Python is already running.
-    - It cannot install Python if Python is totally missing, because this file
-      needs Python to run.
     """
     if os.environ.get("GS_DEPS_CHECK_DONE") == "1":
+        _support_log("Dependency check skipped: GS_DEPS_CHECK_DONE=1")
         return
+
+    _support_section("Dependency check")
 
     report = _check_runtime_requirements(print_report=True)
 
@@ -587,10 +729,17 @@ def _ensure_dependencies_installed() -> None:
     missing_required_files = list(report.get("missing_required_files") or [])
     warnings = list(report.get("warnings") or [])
 
+    _support_log(f"Dependency report ok={report.get('ok')}")
+    _support_log(f"missing_pip={missing_pip}")
+    _support_log(f"missing_required_files={missing_required_files}")
+    _support_log(f"warnings={warnings}")
+
     # ---------------------------------------------------------------------
     # Python version gate
     # ---------------------------------------------------------------------
     if sys.version_info < (3, 10):
+        _support_log(f"Python too old: {sys.version.split()[0]} | executable={sys.executable}")
+
         print("\n❌ Python 3.10+ is required.", flush=True)
         print(f"Current Python: {sys.version.split()[0]}", flush=True)
         print(f"Current executable: {sys.executable}", flush=True)
@@ -598,11 +747,15 @@ def _ensure_dependencies_installed() -> None:
 
         confirm = input("Type Y to install/repair Python, or anything else to exit: ").strip().lower()
 
+        _support_log(f"Python install/repair confirmation={confirm!r}")
+
         if confirm == "y":
             _install_or_repair_python_with_winget()
             print("\nClose this window, then reopen Run_GoogleSheets.bat.", flush=True)
+            _support_log("Python install/repair helper finished; user must reopen BAT.")
         else:
             print("\n❌ Setup cancelled. Python was not updated.", flush=True)
+            _support_log("Setup cancelled because Python is too old and user declined install.")
 
         print("\nPress Enter to exit...", flush=True)
         try:
@@ -615,6 +768,8 @@ def _ensure_dependencies_installed() -> None:
     # Required local files gate
     # ---------------------------------------------------------------------
     if missing_required_files:
+        _support_log(f"Stopping because required local files are missing: {missing_required_files}")
+
         print("\n❌ Required local project files are missing.", flush=True)
         print("These cannot be installed automatically:", flush=True)
         for item in missing_required_files:
@@ -632,14 +787,17 @@ def _ensure_dependencies_installed() -> None:
     # Optional runtime warnings
     # ---------------------------------------------------------------------
     if warnings:
-        pass
+        _support_log(f"Optional runtime warnings present: {warnings}")
 
     # ---------------------------------------------------------------------
     # Pip package gate
     # ---------------------------------------------------------------------
     if not missing_pip:
+        _support_log("No missing pip packages. Dependency check passed.")
         os.environ["GS_DEPS_CHECK_DONE"] = "1"
         return
+
+    _support_log(f"Missing required Python packages: {missing_pip}")
 
     print("\n❌ Missing required Python packages:", flush=True)
     for pkg in missing_pip:
@@ -648,12 +806,18 @@ def _ensure_dependencies_installed() -> None:
     print("\nInstall missing packages now? This requires internet.", flush=True)
     confirm = input("Type Y to install, or anything else to exit: ").strip().lower()
 
+    _support_log(f"Missing package install confirmation={confirm!r}")
+
     if confirm != "y":
         print("\n❌ Setup cancelled. Missing packages were not installed.", flush=True)
         print("The app cannot continue until the missing packages are installed.", flush=True)
         print("\nManual install command:", flush=True)
         print(f"    {sys.executable} -m pip install --prefer-binary {' '.join(missing_pip)}", flush=True)
         print("\nPress Enter to exit...", flush=True)
+
+        _support_log("Setup cancelled because user declined missing package install.")
+        _support_log(f"Manual install command: {sys.executable} -m pip install --prefer-binary {' '.join(missing_pip)}")
+
         try:
             input()
         except Exception:
@@ -664,38 +828,81 @@ def _ensure_dependencies_installed() -> None:
     print("Missing:", ", ".join(missing_pip), flush=True)
     print("This may take a minute.\n", flush=True)
 
-    def run(cmd: list[str]) -> None:
-        subprocess.check_call(cmd)
+    def run(cmd: list[str], label: str) -> None:
+        """
+        Run a setup command while printing output and writing it to support log.
+        """
+        _support_log(f"SETUP_COMMAND_START: {label} | cmd={cmd!r}")
+
+        try:
+            p = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                bufsize=1,
+            )
+
+            if p.stdout is not None:
+                for line in p.stdout:
+                    print(line, end="", flush=True)
+                    _support_log(f"{label}: {line.rstrip()}")
+
+            rc = p.wait()
+            _support_log(f"SETUP_COMMAND_DONE: {label} | returncode={rc}")
+
+            if rc != 0:
+                raise subprocess.CalledProcessError(rc, cmd)
+
+        except Exception as e:
+            _support_log(f"SETUP_COMMAND_FAILED: {label} | error={e!r}")
+            raise
 
     try:
         try:
-            run([sys.executable, "-m", "pip", "--version"])
+            run([sys.executable, "-m", "pip", "--version"], "pip_version_check")
         except Exception:
-            run([sys.executable, "-m", "ensurepip", "--upgrade"])
+            run([sys.executable, "-m", "ensurepip", "--upgrade"], "ensurepip_upgrade")
 
-        run([
-            sys.executable,
-            "-m",
-            "pip",
-            "install",
-            "--upgrade",
-            "pip",
-            "setuptools",
-            "wheel",
-        ])
+        run(
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                "--upgrade",
+                "pip",
+                "setuptools",
+                "wheel",
+            ],
+            "upgrade_pip_setuptools_wheel",
+        )
 
-        run([
-            sys.executable,
-            "-m",
-            "pip",
-            "install",
-            "--disable-pip-version-check",
-            "--no-input",
-            "--prefer-binary",
-            *missing_pip,
-        ])
+        run(
+            [
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                "--disable-pip-version-check",
+                "--no-input",
+                "--prefer-binary",
+                *missing_pip,
+            ],
+            "install_missing_packages",
+        )
 
-    except Exception:
+    except Exception as e:
+        _support_log(f"Dependency installation failed: {e!r}")
+
+        try:
+            import traceback
+            _support_log(traceback.format_exc())
+        except Exception:
+            pass
+
         print("\n❌ Failed to install dependencies automatically.", flush=True)
         print("Try running manually:", flush=True)
         print(f"    {sys.executable} -m pip install --prefer-binary {' '.join(missing_pip)}", flush=True)
@@ -707,6 +914,8 @@ def _ensure_dependencies_installed() -> None:
         raise SystemExit(1)
 
     print("\n✅ Packages installed. Restarting application...\n", flush=True)
+
+    _support_log("Packages installed successfully. Requesting app restart with exit code 75.")
     os.environ["GS_DEPS_CHECK_DONE"] = "1"
     _restart_application_after_dependency_install()
 
@@ -738,6 +947,13 @@ def _portable_bootstrap_here() -> None:
         root_str = str(APP_ROOT)
         if root_str not in sys.path:
             sys.path.insert(0, root_str)
+    except Exception:
+        pass
+
+    # --- Early support logging BEFORE dependency setup and BEFORE GoogleSheets_Log ---
+    try:
+        if __name__ == "__main__" and not getattr(sys, "frozen", False):
+            _write_python_support_snapshot()
     except Exception:
         pass
 
