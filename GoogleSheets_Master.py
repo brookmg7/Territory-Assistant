@@ -989,6 +989,8 @@ def _open_csv_text_best_effort(p: Path | str):
     raise last_err  # type: ignore[misc]
 
 
+# C:\Users\brook\OneDrive\Desktop\Coding\Territory Assistant\GoogleSheets_Master.py
+
 def run_final_master_duplicate_filter(
     clean_csv: str = "output_clean.csv",
     fail_csv: str = "output_fail.csv",
@@ -1024,12 +1026,11 @@ def run_final_master_duplicate_filter(
             extra={"clean_csv": clean_csv, "fail_csv": fail_csv},
         )
 
-        try:
-            _load_master_index.cache_clear()
-        except Exception:
-            pass
-
+        # Reuse the master index already loaded for this top-level run.
+        # The first cleaning flow intentionally refreshes it once; downstream
+        # duplicate/verify passes must not rebuild the same index repeatedly.
         _load_master_index()
+
         if not _MASTER_TRIPLET_SET:
             log_warn(
                 "MASTER_INDEX_EMPTY_SKIPPING_FINAL_DUP_FILTER",
@@ -1068,7 +1069,7 @@ def run_final_master_duplicate_filter(
             deny.update(_AUDIT_LOG_ONLY_KEYS)  # type: ignore[arg-type]
         except Exception:
             pass
-        deny.update({"_geocode_meta"})  # internal blob key (in case it ever landed in a header)
+        deny.update({"_geocode_meta"})
 
         safe_fieldnames = [
             k for k in fieldnames
@@ -1136,7 +1137,6 @@ def run_final_master_duplicate_filter(
             )
             return
 
-        # Populate audit fields just before write (safe even if already present)
         if callable(add_row_audit_fields):
             for r in survivors:
                 try:
@@ -1150,17 +1150,14 @@ def run_final_master_duplicate_filter(
                     pass
 
         def _sanitize(row: dict) -> dict:
-            # Only write allowed columns from safe_fieldnames
             return {k: (row.get(k, "") if k is not None else "") for k in safe_fieldnames}
 
-        # Rewrite clean with survivors
         with open(clean_csv, "w", newline="", encoding="utf-8", buffering=1024 * 1024) as f:
             writer = csv.DictWriter(f, fieldnames=safe_fieldnames)
             writer.writeheader()
             for row in survivors:
                 writer.writerow(_sanitize(row))
 
-        # Append to fail (or create with header)
         write_header = True
         if os.path.exists(fail_csv) and os.path.getsize(fail_csv) > 0:
             write_header = False
@@ -1202,6 +1199,7 @@ def run_final_master_duplicate_filter(
         raise
 
 
+# C:\Users\brook\OneDrive\Desktop\Coding\Territory Assistant\GoogleSheets_Master.py
 
 def run_verify_fail_against_master(clean_csv="output_clean.csv",
                                    fail_csv="output_fail.csv"):
@@ -1237,10 +1235,9 @@ def run_verify_fail_against_master(clean_csv="output_clean.csv",
             extra={"clean_csv": clean_csv, "fail_csv": fail_csv},
         )
 
-        try:
-            _load_master_index.cache_clear()
-        except Exception:
-            pass
+        # Reuse the master index already loaded for this top-level run.
+        # The first cleaning flow intentionally refreshes it once; downstream
+        # duplicate/verify passes must not rebuild the same index repeatedly.
         _load_master_index()
 
         if not os.path.exists(fail_csv):
@@ -1332,7 +1329,6 @@ def run_verify_fail_against_master(clean_csv="output_clean.csv",
             else:
                 return_to_clean.append(row)
 
-        # Populate audit fields before write (safe even if already present)
         if callable(add_row_audit_fields):
             for r in keep_fail:
                 try:
@@ -1348,16 +1344,15 @@ def run_verify_fail_against_master(clean_csv="output_clean.csv",
         def _sanitize(row: dict, fns: list[str]) -> dict:
             return {k: (row.get(k, "") if k is not None else "") for k in fns}
 
-        # Write updated fail file (kept duplicates only)
         with open(fail_csv, "w", newline="", encoding="utf-8", buffering=1024 * 1024) as f:
             w = csv.DictWriter(f, fieldnames=safe_fieldnames)
             w.writeheader()
             for row in keep_fail:
                 w.writerow(_sanitize(row, safe_fieldnames))
 
-        # Append returned rows back to clean file
         if return_to_clean:
             clean_rows: list[dict] = []
+
             if os.path.exists(clean_csv):
                 with open(clean_csv, newline="", encoding="utf-8") as f:
                     r = csv.DictReader(f)
@@ -1366,7 +1361,6 @@ def run_verify_fail_against_master(clean_csv="output_clean.csv",
             else:
                 clean_fieldnames = safe_fieldnames
 
-            # Clean file should also never emit private/internal keys or audit-only keys
             clean_deny = set(deny)
             clean_safe_fieldnames = [
                 k for k in clean_fieldnames
@@ -1385,8 +1379,10 @@ def run_verify_fail_against_master(clean_csv="output_clean.csv",
             with open(clean_csv, "w", newline="", encoding="utf-8", buffering=1024 * 1024) as f:
                 w = csv.DictWriter(f, fieldnames=clean_safe_fieldnames)
                 w.writeheader()
+
                 for row in clean_rows:
                     w.writerow(_sanitize(row, clean_safe_fieldnames))
+
                 for row in return_to_clean:
                     w.writerow(_sanitize(row, clean_safe_fieldnames))
 

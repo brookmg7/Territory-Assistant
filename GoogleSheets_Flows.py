@@ -1708,6 +1708,8 @@ def run_sheets_clean_and_split_after_purge_verify(
 
 
 
+# C:\Users\brook\OneDrive\Desktop\Coding\Territory Assistant\GoogleSheets_Flows.py
+
 def run_sheets_clean_and_split_new_streets_verify(
     input_file: str,
     do_split: bool = False,
@@ -1727,9 +1729,8 @@ def run_sheets_clean_and_split_new_streets_verify(
     - Guard core.cancel_flag (some cores don't expose it).
     """
     from GoogleSheets_Log import stage, log_exception, decision
-    from GoogleSheets_Utils import audit_blank_auckland_rows, _open_csv_text_best_effort  # local import
-    from GoogleSheets_Utils import route_row_writers_by_final_status  # centralized routing
-
+    from GoogleSheets_Utils import audit_blank_auckland_rows, _open_csv_text_best_effort
+    from GoogleSheets_Utils import route_row_writers_by_final_status
 
     input_file = str(input_file)
 
@@ -1741,10 +1742,9 @@ def run_sheets_clean_and_split_new_streets_verify(
     )
 
     try:
-        try:
-            _load_master_index.cache_clear()
-        except Exception:
-            pass
+        # Reuse the master index loaded/refreshed by the preceding OTHER phase.
+        # Do not clear it here: Option 1/2 process OTHER first, so rebuilding the
+        # same full master index again for NEW STREETS is redundant and expensive.
         _load_master_index()
 
         fieldnames = [
@@ -1760,7 +1760,12 @@ def run_sheets_clean_and_split_new_streets_verify(
         add_row_audit_fields = _maybe_import_add_row_audit_fields()
         fieldnames = _extend_fieldnames_with_audit(list(fieldnames), add_row_audit_fields)
 
-        stage("Loading input CSV", module=__name__, fn="run_sheets_clean_and_split_new_streets_verify")
+        stage(
+            "Loading input CSV",
+            module=__name__,
+            fn="run_sheets_clean_and_split_new_streets_verify",
+        )
+
         f = None
         try:
             f = _open_csv_text_best_effort(input_file)
@@ -1773,7 +1778,6 @@ def run_sheets_clean_and_split_new_streets_verify(
             except Exception:
                 pass
 
-        # --- AUDIT: print the exact rows that would yield ", Auckland" ---
         try:
             audit_blank_auckland_rows(
                 input_file,
@@ -1792,17 +1796,20 @@ def run_sheets_clean_and_split_new_streets_verify(
 
         def _split_street_suburb(street_val: str):
             s = (street_val or "").strip()
+
             if "," in s:
                 left, right = s.split(",", 1)
                 return left.strip(), right.strip()
+
             return s, ""
 
-        # Build input coords map
         input_coords: dict[str, tuple[str, str]] = {}
+
         try:
             for raw in rows:
                 lat0 = (raw.get("Latitude") or "").strip()
                 lon0 = (raw.get("Longitude") or "").strip()
+
                 if not (_has_digits(lat0) and _has_digits(lon0)):
                     continue
 
@@ -1822,12 +1829,19 @@ def run_sheets_clean_and_split_new_streets_verify(
                 ):
                     if k and k not in input_coords:
                         input_coords[k] = (lat0, lon0)
+
         except Exception:
             input_coords = {}
 
-        def _restore_coords_if_missing(cleaned: dict, old_unit: str, old_number: str, old_street: str) -> bool:
+        def _restore_coords_if_missing(
+            cleaned: dict,
+            old_unit: str,
+            old_number: str,
+            old_street: str,
+        ) -> bool:
             latc = (cleaned.get("Latitude") or "").strip()
             lonc = (cleaned.get("Longitude") or "").strip()
+
             if _has_digits(latc) and _has_digits(lonc):
                 return False
 
@@ -1846,27 +1860,39 @@ def run_sheets_clean_and_split_new_streets_verify(
                 _canon_key(old_number, st_old_left, sub_c),
                 _canon_key(merged_old, st_old_left, sub_c),
             ]
+
             for k in candidates:
                 if not k:
                     continue
+
                 hit = input_coords.get(k)
+
                 if hit:
                     cleaned["Latitude"], cleaned["Longitude"] = hit[0], hit[1]
+
                     try:
-                        _append_other_notes(cleaned, "Coords restored from input_googlesheets.csv (robust match)")
+                        _append_other_notes(
+                            cleaned,
+                            "Coords restored from input_googlesheets.csv (robust match)",
+                        )
                     except Exception:
                         pass
+
                     return True
+
             return False
 
         def _is_blank_addr_that_formats_to_comma_auckland(rec: dict) -> bool:
             num = (rec.get("Number") or "").strip()
             street = (rec.get("Street") or "").strip()
             suburb = (rec.get("Suburb") or "").strip()
+
             if num or street:
                 return False
+
             if not suburb:
                 return True
+
             return suburb.strip().lower() == "auckland"
 
         stage(
@@ -1878,41 +1904,69 @@ def run_sheets_clean_and_split_new_streets_verify(
 
         cancel_flag = getattr(core, "cancel_flag", None)
 
-        with open(out_clean, "w", newline="", encoding="utf-8", buffering=1024 * 1024) as fout_c, \
-             open(out_fail,  "w", newline="", encoding="utf-8", buffering=1024 * 1024) as fout_f:
+        with open(
+            out_clean,
+            "w",
+            newline="",
+            encoding="utf-8",
+            buffering=1024 * 1024,
+        ) as fout_c, open(
+            out_fail,
+            "w",
+            newline="",
+            encoding="utf-8",
+            buffering=1024 * 1024,
+        ) as fout_f:
 
-            wc = csv.DictWriter(fout_c, fieldnames=fieldnames); wc.writeheader()
-            wf = csv.DictWriter(fout_f, fieldnames=fieldnames); wf.writeheader()
+            wc = csv.DictWriter(fout_c, fieldnames=fieldnames)
+            wc.writeheader()
+
+            wf = csv.DictWriter(fout_f, fieldnames=fieldnames)
+            wf.writeheader()
 
             def _flip_before_write(rec: dict) -> None:
                 num = (rec.get("Number") or "").strip()
+
                 if not num:
                     return
+
                 m = HOUSE_FLIP_A.match(num)
+
                 if m:
                     rec["Number"] = f"{m.group(2)}/Unit{m.group(1).upper()}"
                     return
+
                 m = HOUSE_FLIP_B.match(num)
+
                 if m:
                     rec["Number"] = f"Unit{m.group(2).upper()}/{m.group(1)}"
                     return
 
             for row in tqdm(rows, desc="NewStreets+Verify", unit="row"):
                 try:
-                    if cancel_flag is not None and getattr(cancel_flag, "is_set", None) and cancel_flag.is_set():
+                    if (
+                        cancel_flag is not None
+                        and getattr(cancel_flag, "is_set", None)
+                        and cancel_flag.is_set()
+                    ):
                         break
                 except Exception:
                     pass
 
-                old_unit   = (row.get("Unit") or "").strip()
+                old_unit = (row.get("Unit") or "").strip()
                 old_number = (row.get("Number") or "").strip()
                 old_street = (row.get("Street") or "").strip()
 
-                apartment_number = (row.get("Apartment/Business") or row.get("ApartmentNumber") or "").strip()
-                notes_val     = (row.get("Notes") or "").strip()
+                apartment_number = (
+                    row.get("Apartment/Business")
+                    or row.get("ApartmentNumber")
+                    or ""
+                ).strip()
+
+                notes_val = (row.get("Notes") or "").strip()
                 notes_pub_val = (row.get("NotesFromPublisher") or "").strip()
-                language_val  = (row.get("Language") or "").strip()
-                type_val      = (row.get("Type") or "").strip()
+                language_val = (row.get("Language") or "").strip()
+                type_val = (row.get("Type") or "").strip()
 
                 if not _notes_has_new_street_ci(notes_val):
                     continue
@@ -1921,6 +1975,7 @@ def run_sheets_clean_and_split_new_streets_verify(
 
                 suburb_in = (row.get("Suburb") or "").strip()
                 street_val = old_street
+
                 if suburb_in:
                     suburb_val = _canon_suburb_sheets(suburb_in)
                 else:
@@ -1931,19 +1986,29 @@ def run_sheets_clean_and_split_new_streets_verify(
                     else:
                         suburb_val = ""
 
-                street_val = gs_strip_leading_duplicate_number_from_street(merged_number, street_val)
+                street_val = gs_strip_leading_duplicate_number_from_street(
+                    merged_number,
+                    street_val,
+                )
+
                 street_val = _strip_trailing_postcode(street_val)
                 street_val = _repair_corrupted_street(street_val)
 
                 old_lat = (row.get("Latitude") or "").strip()
                 old_lon = (row.get("Longitude") or "").strip()
+
                 lat_val = old_lat if _has_digits(old_lat) else ""
                 lon_val = old_lon if _has_digits(old_lon) else ""
 
                 postal_code = _postal_for_suburb_sheets(suburb_val)
 
                 incoming_status = (row.get("Status") or "").strip()
-                status_val = "At Home" if incoming_status.lower() == "home" else (incoming_status or "At Home")
+
+                status_val = (
+                    "At Home"
+                    if incoming_status.lower() == "home"
+                    else (incoming_status or "At Home")
+                )
 
                 notes_merged = _merge_notes(notes_val, notes_pub_val)
 
@@ -1970,17 +2035,26 @@ def run_sheets_clean_and_split_new_streets_verify(
                 _clean_notes_and_language(cleaned)
                 _default_type_house(cleaned)
 
-                # Apply new-street override BUT preserve merged_number for geocode attempts
-                _apply_new_street_overrides(cleaned, notes_val, notes_pub_val)
+                _apply_new_street_overrides(
+                    cleaned,
+                    notes_val,
+                    notes_pub_val,
+                )
 
-                # prevent ", Auckland" geocode attempts
                 if _is_blank_addr_that_formats_to_comma_auckland(cleaned):
                     cleaned["Final Status"] = "Fail"
-                    _append_other_notes(cleaned, "Fail: blank Number+Street (would format ', Auckland')")
+
+                    _append_other_notes(
+                        cleaned,
+                        "Fail: blank Number+Street (would format ', Auckland')",
+                    )
 
                     _log_missing_coords(
                         cleaned,
-                        stage="run_sheets_clean_and_split_new_streets_verify:FAIL_WRITE_BLANK_ADDR",
+                        stage=(
+                            "run_sheets_clean_and_split_new_streets_verify:"
+                            "FAIL_WRITE_BLANK_ADDR"
+                        ),
                         reason="blank Number+Street (would format ', Auckland')",
                     )
 
@@ -1990,8 +2064,13 @@ def run_sheets_clean_and_split_new_streets_verify(
                         cleaned,
                         clean_writer=wc,
                         fail_writer=wf,
-                        make_safe_row_fn=lambda r: _sanitize_row_for_write(r, fieldnames, add_row_audit_fields),
+                        make_safe_row_fn=lambda r: _sanitize_row_for_write(
+                            r,
+                            fieldnames,
+                            add_row_audit_fields,
+                        ),
                     )
+
                     continue
 
                 geo_row = dict(cleaned)
@@ -1999,11 +2078,25 @@ def run_sheets_clean_and_split_new_streets_verify(
                 geo_row["Street"] = street_val
                 geo_row["Suburb"] = suburb_val
 
-                lat, lon, src = _choose_best_coordinate(geo_row, allow_outside_auckland=False)
-                if lat is not None and lon is not None and src:
-                    _accept_geocode_update(cleaned, lat, lon, src)
+                lat, lon, src = _choose_best_coordinate(
+                    geo_row,
+                    allow_outside_auckland=False,
+                )
 
-                _restore_coords_if_missing(cleaned, old_unit, old_number, old_street)
+                if lat is not None and lon is not None and src:
+                    _accept_geocode_update(
+                        cleaned,
+                        lat,
+                        lon,
+                        src,
+                    )
+
+                _restore_coords_if_missing(
+                    cleaned,
+                    old_unit,
+                    old_number,
+                    old_street,
+                )
 
                 try:
                     backfill_suburb_postcode_for_row(
@@ -2015,18 +2108,49 @@ def run_sheets_clean_and_split_new_streets_verify(
                 except Exception:
                     pass
 
-                cleaned["Suburb"] = _canon_suburb_sheets(cleaned.get("Suburb", ""))
-                cleaned["PostalCode"] = _postal_for_suburb_sheets(cleaned.get("Suburb", ""))
+                cleaned["Suburb"] = _canon_suburb_sheets(
+                    cleaned.get("Suburb", "")
+                )
 
-                reasons = _should_fail_row(cleaned, old_unit, old_number, old_street)
+                cleaned["PostalCode"] = _postal_for_suburb_sheets(
+                    cleaned.get("Suburb", "")
+                )
+
+                reasons = _should_fail_row(
+                    cleaned,
+                    old_unit,
+                    old_number,
+                    old_street,
+                )
 
                 if reasons:
                     cleaned["Final Status"] = "Fail"
-                    _append_other_notes(cleaned, "Fail: " + ", ".join(reasons))
-                    _log_missing_coords(cleaned, stage="run_sheets_clean_and_split_new_streets_verify:FAIL_WRITE", reason="; ".join(reasons))
+
+                    _append_other_notes(
+                        cleaned,
+                        "Fail: " + ", ".join(reasons),
+                    )
+
+                    _log_missing_coords(
+                        cleaned,
+                        stage=(
+                            "run_sheets_clean_and_split_new_streets_verify:"
+                            "FAIL_WRITE"
+                        ),
+                        reason="; ".join(reasons),
+                    )
+
                 else:
                     cleaned["Final Status"] = "Pass"
-                    _log_missing_coords(cleaned, stage="run_sheets_clean_and_split_new_streets_verify:CLEAN_WRITE", reason="passed_should_fail_row")
+
+                    _log_missing_coords(
+                        cleaned,
+                        stage=(
+                            "run_sheets_clean_and_split_new_streets_verify:"
+                            "CLEAN_WRITE"
+                        ),
+                        reason="passed_should_fail_row",
+                    )
 
                 _flip_before_write(cleaned)
 
@@ -2034,11 +2158,16 @@ def run_sheets_clean_and_split_new_streets_verify(
                     cleaned,
                     clean_writer=wc,
                     fail_writer=wf,
-                    make_safe_row_fn=lambda r: _sanitize_row_for_write(r, fieldnames, add_row_audit_fields),
+                    make_safe_row_fn=lambda r: _sanitize_row_for_write(
+                        r,
+                        fieldnames,
+                        add_row_audit_fields,
+                    ),
                 )
+
                 continue
 
-        # ✅ FINAL SWEEP (canonical rules)
+        # Canonical final sweep
         try:
             enforce_outputs_routing(out_clean, out_fail)
         except Exception:
@@ -2065,11 +2194,24 @@ def run_sheets_clean_and_split_new_streets_verify(
             pass
 
         if do_split:
-            decision("SPLIT_START", module=__name__, fn="run_sheets_clean_and_split_new_streets_verify", extra={"kml_dir": "KML Boundaries"})
-            print("✅ Stage 3: Splitting By Territory Boundaries")
-            _split_into_final_folder(out_clean, out_fail)
+            decision(
+                "SPLIT_START",
+                module=__name__,
+                fn="run_sheets_clean_and_split_new_streets_verify",
+                extra={"kml_dir": "KML Boundaries"},
+            )
 
-        _summarize_final_status(out_clean, out_fail)
+            print("✅ Stage 3: Splitting By Territory Boundaries")
+
+            _split_into_final_folder(
+                out_clean,
+                out_fail,
+            )
+
+        _summarize_final_status(
+            out_clean,
+            out_fail,
+        )
 
         stage(
             "Flow finished: New Streets (full verify)",
@@ -2083,8 +2225,14 @@ def run_sheets_clean_and_split_new_streets_verify(
             "FLOW_EXCEPTION",
             module=__name__,
             fn="run_sheets_clean_and_split_new_streets_verify",
-            extra={"input_file": input_file, "out_clean": out_clean, "out_fail": out_fail, "do_split": do_split},
+            extra={
+                "input_file": input_file,
+                "out_clean": out_clean,
+                "out_fail": out_fail,
+                "do_split": do_split,
+            },
         )
+
         raise
 
 

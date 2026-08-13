@@ -352,7 +352,7 @@ Goals
 No imports from your other modules (avoids circular imports).
 Stdlib only.
 ```
-- **Inside:** funcs: _noisy_signature, _should_echo_event_to_console, log_correction, _log_quiet, _get_depth, _inc_depth, _dec_depth, _now, _safe_repr, _clip, init_logger, console, consolef, get_log_path, module_loaded, install_excepthook, _write_line, _copy_wrapper_passthrough_attrs, +18 more • consts: _NOISY_EVENTS=<set len≈3>, _NOISY_TTL_SECONDS=30.0, _NOISY_MAX_KEYS=50000, _NOISY_SEEN=<dict len≈0>, _NOISY_LOCK=<call Lock(... )>, DEFAULT_LOG_DIRNAME='Log', DEFAULT_LOG_FILENAME='GoogleSheets_All.txt', MAX_REPR=600, MAX_TRACE=12000, MAX_LINE=4000, _LOCK=<call Lock(... )>, _RUN_ID=None, +4 more
+- **Inside:** funcs: _noisy_signature, _should_echo_event_to_console, log_correction, _log_quiet, _get_depth, _inc_depth, _dec_depth, _now, _safe_repr, _clip, init_logger, console, consolef, get_log_path, module_loaded, install_excepthook, _write_line, _copy_wrapper_passthrough_attrs, +18 more • consts: _NOISY_EVENTS=<set len≈3>, _NOISY_TTL_SECONDS=30.0, _NOISY_MAX_KEYS=50000, _NOISY_SEEN=<dict len≈0>, _NOISY_LOCK=<call Lock(... )>, DEFAULT_LOG_DIRNAME='Log', DEFAULT_LOG_FILENAME='Run_GoogleSheets_support_log.txt', MAX_REPR=600, MAX_TRACE=12000, MAX_LINE=4000, _LOCK=<call Lock(... )>, _RUN_ID=None, +4 more
 
 **Change Impact Hints (hard-coded):**
 - If a change affects a CSV field or decision outcome, always check: Analyzer → Decision → Journal → Export (in that order).
@@ -401,7 +401,7 @@ This module contains ONLY the Master-related functions you listed:
 
 #### `GoogleSheets_Menu.py`
 - **Role:** `ENTRYPOINT` • `has __main__`
-- **Responsibilities:** `runtime/orchestration/loops`, `exports/reports (csv/json/md/txt)`, `config/env/constants`, `time/session/scheduling`, `filesystem/path I/O`
+- **Responsibilities:** `runtime/orchestration/loops`, `market data (OHLC/bars/feeds)`, `journaling/audit/logging`, `exports/reports (csv/json/md/txt)`, `config/env/constants`, `time/session/scheduling`
 - **Internal imports:** `GoogleSheets_Flows.py`, `Street Database/bin/gdal/python/osgeo_utils/auxiliary/util.py`
 - **Imported by:** `[none detected]`
 - **IO label:** `boundary`
@@ -428,7 +428,7 @@ This module contains ONLY:
 Design rules (per your split plan)
 -------...
 ```
-- **Inside:** classes: _StageProgress • funcs: progress_stage, _start_heartbeat, _dump_stacks_after, _app_root, _check_runtime_requirements, _restart_application_after_dependency_install, _install_or_repair_python_with_winget, _ensure_dependencies_installed, _portable_bootstrap_here, _ensure_quit_listener_started_once, _core_cancel_flag, _print_run_banner, _run_option2_routed, _run_option3_routed, _run_option1_clean_only, render_menu, open_menu • consts: REQUIRED_PACKAGES=<list len≈10>, APP_ROOT=<call _app_root(... )>, _QUIT_LISTENER_STARTED=False, _QUIT_LISTENER_LOCK=<call Lock(... )>
+- **Inside:** classes: _StageProgress • funcs: progress_stage, _start_heartbeat, _dump_stacks_after, _app_root, _support_log_path, _support_log, _support_section, _support_run_capture, _write_python_support_snapshot, _check_runtime_requirements, _restart_application_after_dependency_install, _install_or_repair_python_with_winget, _ensure_dependencies_installed, _portable_bootstrap_here, _ensure_quit_listener_started_once, _core_cancel_flag, _print_run_banner, _run_option2_routed, +4 more • consts: REQUIRED_PACKAGES=<list len≈10>, APP_ROOT=<call _app_root(... )>, _QUIT_LISTENER_STARTED=False, _QUIT_LISTENER_LOCK=<call Lock(... )>
 
 **Change Impact Hints (hard-coded):**
 - If a change affects a CSV field or decision outcome, always check: Analyzer → Decision → Journal → Export (in that order).
@@ -560,9 +560,9 @@ All functions are self‑contained and avoid depending on globals from the main 
 ### `Run_GoogleSheets.bat`
 - **Role:** `BAT`
 - **Responsibilities:** `runs python scripts`, `sets env/runtime flags`
-- **Env vars:** `"APP_ROOT=%~dp0"`, `"SCRIPT=%APP_ROOT%GoogleSheets_Menu.py"`, `"PYTHON_WINGET_ID=Python.Python.3.13"`, `"RC=9009"`, `"RC=9009"`, `"RC=9009"`, `"RC=9009"`, `"RC=%ERRORLEVEL%"` (+6 more)
-- **Python calls:** `echo Python was not found`, `echo   - python on PATH`, `echo This app needs Python before GoogleSheets_Menu.py can run.`, `echo or install Python manually from python.org.` (+12 more)
-- **References:** `GoogleSheets_Menu.py`, `Python.Py`, `Run_GoogleSheets.bat`
+- **Env vars:** `"TA_KEEP_OPEN=1"`, `"APP_ROOT=%~dp0"`, `"SCRIPT=%APP_ROOT%GoogleSheets_Menu.py"`, `"LOG_DIR=%APP_ROOT%Log"`, `"SUPPORT_LOG=%LOG_DIR%\Run_GoogleSheets_support_log.txt"`, `"PYTHON_WINGET_ID=Python.Python.3.13"`, `"RC=0"`, `"PY_FOUND=0"` (+10 more)
+- **Python calls:** `call :find_python`, `echo Python was not found`, `echo This app needs Python before it can run.`, `echo   Python 3.13 64-bit` (+14 more)
+- **References:** `//www.py`, `GoogleSheets_Menu.py`, `Python.Py`
 
 ### `Run_Menu.bat`
 - **Role:** `BAT`
