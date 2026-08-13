@@ -1445,6 +1445,8 @@ def render_menu():
     print("0 - Back to Main Menu")
 
 
+# C:\Users\brook\OneDrive\Desktop\Coding\Territory Assistant\GoogleSheets_Menu.py
+
 def open_menu():
     """
     Interactive menu loop.
@@ -1454,85 +1456,319 @@ def open_menu():
       - 2: Clean & Split Into Different Suburbs (Full...)  (was 4)
       - 3: Check Master Database For Duplicates            (was 5)
       - 0: Back
+
+    PERFORMANCE PATCH:
+      - Profiles only active Option 1/2/3 execution.
+      - Writes Log/GoogleSheets_Performance.txt after each run.
+      - Excludes idle menu/input waiting time from the profile.
     """
-    from GoogleSheets_Log import decision, log_exception, stage
+    from GoogleSheets_Log import (
+        decision,
+        log_exception,
+        stage,
+        performance_start,
+        performance_stop,
+    )
 
     _ensure_quit_listener_started_once()
-    stage("GoogleSheets menu loop entered", module=__name__, fn="open_menu")
+
+    stage(
+        "GoogleSheets menu loop entered",
+        module=__name__,
+        fn="open_menu",
+    )
 
     while True:
         render_menu()
-        choice = (input("\nChoose an option (0/1/2/3/8/9): ") or "").strip()
-        decision("MENU_CHOICE_INPUT", module=__name__, fn="open_menu", extra={"choice": choice})
+
+        choice = (
+            input(
+                "\nChoose an option "
+                "(0/1/2/3/8/9): "
+            )
+            or ""
+        ).strip()
+
+        decision(
+            "MENU_CHOICE_INPUT",
+            module=__name__,
+            fn="open_menu",
+            extra={
+                "choice": choice,
+            },
+        )
 
         if choice == "0":
-            decision("MENU_EXIT", module=__name__, fn="open_menu")
-            print("↩️  Returning to main menu.\n")
+            decision(
+                "MENU_EXIT",
+                module=__name__,
+                fn="open_menu",
+            )
+
+            print(
+                "↩️  Returning to main menu.\n"
+            )
+
             return
 
         if choice == "8":
-            decision("MENU_PYTHON_INSTALL_REPAIR", module=__name__, fn="open_menu")
+            decision(
+                "MENU_PYTHON_INSTALL_REPAIR",
+                module=__name__,
+                fn="open_menu",
+            )
+
             _install_or_repair_python_with_winget()
+
             continue
 
         if choice == "9":
-            decision("MENU_REQUIREMENTS_CHECK", module=__name__, fn="open_menu")
-            _check_runtime_requirements(print_report=True)
+            decision(
+                "MENU_REQUIREMENTS_CHECK",
+                module=__name__,
+                fn="open_menu",
+            )
+
+            _check_runtime_requirements(
+                print_report=True,
+            )
+
             continue
 
-        if choice not in {"1", "2", "3"}:
-            decision("MENU_INVALID_CHOICE", module=__name__, fn="open_menu", extra={"choice": choice})
-            print("❌ Invalid choice.\n")
+        if choice not in {
+            "1",
+            "2",
+            "3",
+        }:
+            decision(
+                "MENU_INVALID_CHOICE",
+                module=__name__,
+                fn="open_menu",
+                extra={
+                    "choice": choice,
+                },
+            )
+
+            print(
+                "❌ Invalid choice.\n"
+            )
+
             continue
 
-        confirm = input("Proceed? (y to continue / any other key to cancel): ").strip().lower()
-        decision("MENU_CONFIRM", module=__name__, fn="open_menu", extra={"choice": choice, "confirm": confirm})
+        confirm = input(
+            "Proceed? "
+            "(y to continue / any other key to cancel): "
+        ).strip().lower()
+
+        decision(
+            "MENU_CONFIRM",
+            module=__name__,
+            fn="open_menu",
+            extra={
+                "choice": choice,
+                "confirm": confirm,
+            },
+        )
 
         if confirm != "y":
-            print("❌ Cancelled.\n")
-            decision("MENU_CANCELLED_AT_CONFIRM", module=__name__, fn="open_menu", extra={"choice": choice})
+            print(
+                "❌ Cancelled.\n"
+            )
+
+            decision(
+                "MENU_CANCELLED_AT_CONFIRM",
+                module=__name__,
+                fn="open_menu",
+                extra={
+                    "choice": choice,
+                },
+            )
+
             continue
 
-        # Clear cancel flag for this run (legacy behavior)
+        # Clear cancel flag for this run.
         try:
             cf = _core_cancel_flag()
+
             if cf is not None:
                 cf.clear()
-                decision("CANCEL_FLAG_CLEARED", module=__name__, fn="open_menu", extra={"choice": choice})
+
+                decision(
+                    "CANCEL_FLAG_CLEARED",
+                    module=__name__,
+                    fn="open_menu",
+                    extra={
+                        "choice": choice,
+                    },
+                )
+
             else:
-                decision("CANCEL_FLAG_NOT_AVAILABLE", module=__name__, fn="open_menu", extra={"choice": choice})
+                decision(
+                    "CANCEL_FLAG_NOT_AVAILABLE",
+                    module=__name__,
+                    fn="open_menu",
+                    extra={
+                        "choice": choice,
+                    },
+                )
+
         except Exception:
-            decision("CANCEL_FLAG_CLEAR_FAILED", module=__name__, fn="open_menu", extra={"choice": choice})
+            decision(
+                "CANCEL_FLAG_CLEAR_FAILED",
+                module=__name__,
+                fn="open_menu",
+                extra={
+                    "choice": choice,
+                },
+            )
 
         option_map = {
-            "1": ("_run_option1_clean_only", _run_option1_clean_only),
-            "2": ("_run_option2_routed", _run_option2_routed),
-            "3": ("_run_option3_routed", _run_option3_routed),
+            "1": (
+                "_run_option1_clean_only",
+                _run_option1_clean_only,
+            ),
+            "2": (
+                "_run_option2_routed",
+                _run_option2_routed,
+            ),
+            "3": (
+                "_run_option3_routed",
+                _run_option3_routed,
+            ),
         }
-        opt_name, opt_fn = option_map[choice]
+
+        opt_name, opt_fn = option_map[
+            choice
+        ]
+
+        perf_started = False
+        perf_status = "OK"
 
         try:
             _print_run_banner()
-            decision("RUN_OPTION_START", module=__name__, fn="open_menu", extra={"option": choice, "name": opt_name})
 
-            flows.core.run_with_cancel(opt_fn)
+            decision(
+                "RUN_OPTION_START",
+                module=__name__,
+                fn="open_menu",
+                extra={
+                    "option": choice,
+                    "name": opt_name,
+                },
+            )
+
+            # ---------------------------------------------------------
+            # Start performance profiler AFTER confirmation/menu input.
+            # ---------------------------------------------------------
+            try:
+                performance_start(
+                    label=(
+                        f"Option {choice} - "
+                        f"{opt_name}"
+                    ),
+                    app_root=APP_ROOT,
+                )
+
+                perf_started = True
+
+            except Exception as e:
+                decision(
+                    "PERFORMANCE_PROFILE_START_FAILED",
+                    module=__name__,
+                    fn="open_menu",
+                    extra={
+                        "option": choice,
+                        "error": str(e),
+                    },
+                )
+
+            # ---------------------------------------------------------
+            # Actual Option 1/2/3 execution
+            # ---------------------------------------------------------
+            flows.core.run_with_cancel(
+                opt_fn
+            )
 
             try:
                 cf = _core_cancel_flag()
-                cancelled = bool(cf is not None and cf.is_set())
+
+                cancelled = bool(
+                    cf is not None
+                    and cf.is_set()
+                )
+
             except Exception:
                 cancelled = False
+
+            perf_status = (
+                "CANCELLED"
+                if cancelled
+                else "OK"
+            )
 
             decision(
                 "RUN_OPTION_DONE",
                 module=__name__,
                 fn="open_menu",
-                extra={"option": choice, "name": opt_name, "cancelled": cancelled},
+                extra={
+                    "option": choice,
+                    "name": opt_name,
+                    "cancelled": cancelled,
+                },
             )
 
         except Exception as e:
-            log_exception("MENU_EXCEPTION", module=__name__, fn="open_menu", extra={"choice": choice, "error": str(e)})
-            print(f"❌ Error: {e}")
+            perf_status = "ERROR"
+
+            log_exception(
+                "MENU_EXCEPTION",
+                module=__name__,
+                fn="open_menu",
+                extra={
+                    "choice": choice,
+                    "error": str(e),
+                },
+            )
+
+            print(
+                f"❌ Error: {e}"
+            )
+
+        finally:
+            # ---------------------------------------------------------
+            # Always stop/write profile, even after cancellation/error.
+            # ---------------------------------------------------------
+            if perf_started:
+                try:
+                    perf_path = performance_stop(
+                        status=perf_status
+                    )
+
+                    decision(
+                        "PERFORMANCE_PROFILE_WRITTEN",
+                        module=__name__,
+                        fn="open_menu",
+                        extra={
+                            "option": choice,
+                            "status": perf_status,
+                            "file": (
+                                str(perf_path)
+                                if perf_path
+                                else ""
+                            ),
+                        },
+                    )
+
+                except Exception as e:
+                    decision(
+                        "PERFORMANCE_PROFILE_STOP_FAILED",
+                        module=__name__,
+                        fn="open_menu",
+                        extra={
+                            "option": choice,
+                            "error": str(e),
+                        },
+                    )
 
 
 # =============================================================================

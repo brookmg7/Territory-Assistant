@@ -1,0 +1,241 @@
+====================================================================================================
+GOOGLE SHEETS PERFORMANCE LOG
+====================================================================================================
+Run ID: 1786583197-29684
+Label: Option 1 - _run_option1_clean_only
+Started: 2026-08-13 13:06:40
+Finished: 2026-08-13 13:07:12
+Status: OK
+Wall Time: 31.868s
+Project Root: C:\Users\brook\OneDrive\Desktop\Coding\Territory Assistant
+Timed Project Calls: 2198114
+Unique Project Functions: 131
+
+----------------------------------------------------------------------------------------------------
+SLOWEST FUNCTIONS — CUMULATIVE TIME
+----------------------------------------------------------------------------------------------------
+Rank         Cum        Self      Calls  Function
+   1     37.590s     88.40ms      11321  GoogleSheets_Master.add:601
+   2     33.525s    125.09ms     110228  GoogleSheets_Log.log_debug:1198
+   3     31.857s    486.67ms      55108  GoogleSheets_Log.wrapper:1318
+   4     31.857s      0.03ms          2  GoogleSheets_CoreLite.run_with_cancel:134
+   5     31.857s      0.10ms          2  GoogleSheets_Menu._run_option1_clean_only:1291
+   6     31.790s      0.10ms         14  GoogleSheets_Menu.progress_stage:127
+   7     31.789s      0.11ms          7  GoogleSheets_Menu.stop:90
+   8     27.316s    873.05ms     110281  GoogleSheets_Log._log:1139
+   9     25.059s    463.55ms     110281  GoogleSheets_Log._write_line:1028
+  10     14.664s     88.46ms      11332  GoogleSheets_Master._canon_triplet:360
+  11     13.989s      0.26ms          7  GoogleSheets_Menu._run:111
+  12      4.906s     11.86ms          1  GoogleSheets_Master._load_master_index:578
+  13      3.351s      0.22ms          5  GoogleSheets_Master._repair_corrupted_street:1525
+  14      2.905s     25.90ms       5166  GoogleSheets_Utils._canon_text_cached:181
+  15      1.453s    222.46ms      55107  GoogleSheets_Log._find_external_caller:1177
+  16    533.59ms     44.83ms     110281  GoogleSheets_Log._now:233
+  17    471.37ms    240.71ms      55107  GoogleSheets_Log._summarize_args:1115
+  18    391.60ms    108.13ms     220634  GoogleSheets_Log._safe_repr:237
+  19    380.47ms    230.42ms     144286  GoogleSheets_Log._summarize_value:1099
+  20    293.80ms      0.20ms          1  GoogleSheets_Flows.run_sheets_clean_and_split_after_purge_verify:1333
+  21    259.24ms    150.54ms     220495  GoogleSheets_Log._get_depth:220
+  22    201.91ms      0.18ms         70  GoogleSheets_Utils._canon_suburb_sheets:1246
+  23    176.09ms     76.11ms      55107  GoogleSheets_Log._dec_depth:229
+  24    156.26ms      0.43ms         70  GoogleSheets_Utils._canon_suburb_local:1229
+  25    151.39ms     26.97ms       9529  GoogleSheets_Utils._strip_macrons:170
+  26    142.19ms      0.83ms          9  GoogleSheets_Utils.enforce_outputs_routing:1563
+  27    139.69ms     55.38ms      55107  GoogleSheets_Log._inc_depth:225
+  28    130.88ms      0.53ms         25  GoogleSheets_Utils._postal_for_suburb_sheets:1311
+  29    121.83ms      0.31ms          1  GoogleSheets_Flows.run_sheets_clean_and_split_new_streets_verify:1713
+  30    120.48ms     81.59ms     254567  GoogleSheets_Log._clip:247
+  31    120.07ms      0.90ms         14  GoogleSheets_Utils.add_row_audit_fields:1426
+  32    107.49ms      1.42ms          1  GoogleSheets_Master._init_street_whitelist_from_master:1416
+  33     90.26ms      0.08ms         10  GoogleSheets_Utils._enforce_postcode_whitelist:1542
+  34     89.41ms      0.39ms          3  GoogleSheets_Master.run_final_master_duplicate_filter:994
+  35     71.99ms     47.50ms     110281  GoogleSheets_Log._should_echo_event_to_console:108
+  36     71.65ms     45.82ms     127772  GoogleSheets_Utils.<genexpr>:176
+  37     64.43ms      0.04ms          5  GoogleSheets_Flows._route_by_final_status:759
+  38     63.48ms      0.03ms          3  GoogleSheets_Menu._enforce:1310
+  39     63.23ms      0.81ms         70  GoogleSheets_Utils._repair_corrupted_suburb:1194
+  40     61.01ms      0.03ms          5  GoogleSheets_Utils.route_row_writers_by_final_status:1513
+  41     57.77ms      0.02ms          5  GoogleSheets_Flows.<lambda>:1545
+  42     57.75ms      0.22ms          5  GoogleSheets_Flows._sanitize_row_for_write:2386
+  43     56.34ms      0.11ms         10  GoogleSheets_Flows._canon_key:1791
+  44     53.50ms      0.07ms          5  GoogleSheets_Utils.backfill_suburb_postcode_for_row:1752
+  45     53.07ms      0.09ms         10  GoogleSheets_Flows._canon_key:1446
+  46     50.83ms     24.86ms       8872  GoogleSheets_Utils._split_unit_house:335
+  47     49.01ms      0.07ms          5  GoogleSheets_Utils._accept_geocode_update:883
+  48     46.85ms      0.42ms         18  GoogleSheets_Utils._read:1612
+  49     46.55ms      0.53ms         18  GoogleSheets_Utils._write:1678
+  50     43.30ms      0.29ms          3  GoogleSheets_Master.run_verify_fail_against_master:1204
+  51     42.81ms     13.10ms      13162  GoogleSheets_Utils._strip_unit_prefix_for_match:1131
+  52     30.80ms     30.80ms     220634  GoogleSheets_Log.<lambda>:1148
+  53     30.61ms      0.07ms         26  GoogleSheets_Utils._open_csv_text_best_effort:856
+  54     30.47ms     24.21ms      11321  GoogleSheets_Master._canon_street_suburb:351
+  55     30.40ms      0.21ms         30  GoogleSheets_Utils._push:1655
+  56     24.49ms     24.49ms     110281  GoogleSheets_Log._should_print_to_console:1125
+  57     23.29ms      0.09ms          5  GoogleSheets_Flows._should_fail_row:2497
+  58     20.31ms      0.42ms         35  GoogleSheets_Log.stage:1221
+  59     16.00ms      0.07ms          9  GoogleSheets_Utils.<genexpr>:1671
+  60     13.26ms      0.03ms          6  GoogleSheets_Master.resolve_master_paths:96
+  61     13.15ms      0.05ms          5  GoogleSheets_Flows._street_suburb_matches_old:2482
+  62     11.49ms      0.23ms          3  GoogleSheets_Flows._summarize_final_status:880
+  63     10.96ms      0.27ms          2  GoogleSheets_Flows._merge_csvs:175
+  64     10.11ms      0.04ms          6  GoogleSheets_Master.resolve_master_csv_path:227
+  65     10.03ms      0.06ms          5  GoogleSheets_Utils.gs_strip_leading_duplicate_number_from_street:392
+  66     10.02ms      0.05ms          5  GoogleSheets_Flows._numbers_match:168
+  67      8.21ms      0.12ms          5  GoogleSheets_Utils._choose_best_coordinate:509
+  68      8.19ms      0.08ms          2  GoogleSheets_Flows._extend_fieldnames_with_audit:2336
+  69      7.16ms      0.04ms          2  GoogleSheets_Master._ensure_sqlite_from_csv:407
+  70      6.87ms      0.05ms          6  GoogleSheets_Master._looks_like_master_csv:152
+  71      6.87ms      0.05ms          1  GoogleSheets_Log.performance_stop:444
+  72      6.51ms      0.04ms          9  GoogleSheets_Master._normalize_ap_num:1084
+  73      6.30ms      0.06ms          5  GoogleSheets_Flows._restore_coords_if_missing:1486
+  74      5.57ms      0.08ms          1  GoogleSheets_Utils._init_suburb_whitelist:1170
+  75      4.37ms      0.09ms          5  GoogleSheets_Utils._house_digits_from_number:382
+  76      3.74ms      0.12ms         35  GoogleSheets_Utils._canon_text:188
+  77      3.57ms      0.03ms         11  GoogleSheets_Log.decision:1214
+  78      3.32ms      0.04ms          5  GoogleSheets_CoreLite_Geocode._maybe_swap_latlon:693
+  79      3.17ms      0.02ms          4  GoogleSheets_Flows._open_in:245
+  80      2.61ms      0.02ms          2  GoogleSheets_Master._normalize_ap_num:1281
+  81      2.09ms      0.23ms          2  GoogleSheets_Flows.tqdm:50
+  82      1.98ms      0.01ms          7  GoogleSheets_Log.log_info:1202
+  83      1.94ms      0.08ms          2  GoogleSheets_Utils.audit_blank_auckland_rows:1993
+  84      1.69ms      0.49ms         70  GoogleSheets_Utils._normalize_polygon_suburb_name:59
+  85      1.63ms      0.03ms          1  GoogleSheets_Flows.cleanup_routed_intermediate_csvs:652
+  86      1.24ms      0.03ms          8  GoogleSheets_Flows._delete_if_exists:643
+  87      1.20ms      0.80ms         54  GoogleSheets_Utils.strip_audit_columns_from_row:1389
+  88      0.82ms      0.07ms         14  GoogleSheets_Menu.clear_line:82
+  89      0.77ms      0.02ms          6  GoogleSheets_Master._read_csv_header_best_effort:119
+  90      0.58ms      0.01ms          1  GoogleSheets_Log._performance_project_root:336
+  91      0.55ms      0.15ms         30  GoogleSheets_Utils.normalize_number:260
+  92      0.49ms      0.33ms        172  GoogleSheets_Utils._is_blank_any:1370
+  93      0.31ms      0.01ms          3  GoogleSheets_Flows._stemmed_outputs_for:458
+  94      0.31ms      0.19ms         60  GoogleSheets_Utils.final_status_is_pass_ok:1467
+  95      0.30ms      0.04ms          6  GoogleSheets_Flows.stemmed:463
+  96      0.28ms      0.13ms         40  GoogleSheets_Utils._has_digits:198
+  97      0.26ms      0.20ms        324  GoogleSheets_Utils._allowed_field:1602
+  98      0.25ms      0.14ms          6  GoogleSheets_Master._canon_header_cols:139
+  99      0.22ms      0.01ms          7  GoogleSheets_Menu.start:77
+ 100      0.11ms      0.01ms          2  GoogleSheets_Menu._later:185
+
+----------------------------------------------------------------------------------------------------
+SLOWEST FUNCTIONS — SELF TIME
+----------------------------------------------------------------------------------------------------
+Rank        Self         Cum      Calls  Function
+   1    873.05ms     27.316s     110281  GoogleSheets_Log._log:1139
+   2    486.67ms     31.857s      55108  GoogleSheets_Log.wrapper:1318
+   3    463.55ms     25.059s     110281  GoogleSheets_Log._write_line:1028
+   4    240.71ms    471.37ms      55107  GoogleSheets_Log._summarize_args:1115
+   5    230.42ms    380.47ms     144286  GoogleSheets_Log._summarize_value:1099
+   6    222.46ms      1.453s      55107  GoogleSheets_Log._find_external_caller:1177
+   7    150.54ms    259.24ms     220495  GoogleSheets_Log._get_depth:220
+   8    125.09ms     33.525s     110228  GoogleSheets_Log.log_debug:1198
+   9    108.13ms    391.60ms     220634  GoogleSheets_Log._safe_repr:237
+  10     88.46ms     14.664s      11332  GoogleSheets_Master._canon_triplet:360
+  11     88.40ms     37.590s      11321  GoogleSheets_Master.add:601
+  12     81.59ms    120.48ms     254567  GoogleSheets_Log._clip:247
+  13     76.11ms    176.09ms      55107  GoogleSheets_Log._dec_depth:229
+  14     55.38ms    139.69ms      55107  GoogleSheets_Log._inc_depth:225
+  15     47.50ms     71.99ms     110281  GoogleSheets_Log._should_echo_event_to_console:108
+  16     45.82ms     71.65ms     127772  GoogleSheets_Utils.<genexpr>:176
+  17     44.83ms    533.59ms     110281  GoogleSheets_Log._now:233
+  18     30.80ms     30.80ms     220634  GoogleSheets_Log.<lambda>:1148
+  19     26.97ms    151.39ms       9529  GoogleSheets_Utils._strip_macrons:170
+  20     25.90ms      2.905s       5166  GoogleSheets_Utils._canon_text_cached:181
+  21     24.86ms     50.83ms       8872  GoogleSheets_Utils._split_unit_house:335
+  22     24.49ms     24.49ms     110281  GoogleSheets_Log._should_print_to_console:1125
+  23     24.21ms     30.47ms      11321  GoogleSheets_Master._canon_street_suburb:351
+  24     13.10ms     42.81ms      13162  GoogleSheets_Utils._strip_unit_prefix_for_match:1131
+  25     11.86ms      4.906s          1  GoogleSheets_Master._load_master_index:578
+  26      1.42ms    107.49ms          1  GoogleSheets_Master._init_street_whitelist_from_master:1416
+  27      0.90ms    120.07ms         14  GoogleSheets_Utils.add_row_audit_fields:1426
+  28      0.83ms    142.19ms          9  GoogleSheets_Utils.enforce_outputs_routing:1563
+  29      0.81ms     63.23ms         70  GoogleSheets_Utils._repair_corrupted_suburb:1194
+  30      0.80ms      1.20ms         54  GoogleSheets_Utils.strip_audit_columns_from_row:1389
+  31      0.53ms     46.55ms         18  GoogleSheets_Utils._write:1678
+  32      0.53ms    130.88ms         25  GoogleSheets_Utils._postal_for_suburb_sheets:1311
+  33      0.49ms      1.69ms         70  GoogleSheets_Utils._normalize_polygon_suburb_name:59
+  34      0.43ms    156.26ms         70  GoogleSheets_Utils._canon_suburb_local:1229
+  35      0.42ms     46.85ms         18  GoogleSheets_Utils._read:1612
+  36      0.42ms     20.31ms         35  GoogleSheets_Log.stage:1221
+  37      0.39ms     89.41ms          3  GoogleSheets_Master.run_final_master_duplicate_filter:994
+  38      0.33ms      0.49ms        172  GoogleSheets_Utils._is_blank_any:1370
+  39      0.31ms    121.83ms          1  GoogleSheets_Flows.run_sheets_clean_and_split_new_streets_verify:1713
+  40      0.29ms     43.30ms          3  GoogleSheets_Master.run_verify_fail_against_master:1204
+  41      0.27ms     10.96ms          2  GoogleSheets_Flows._merge_csvs:175
+  42      0.26ms     13.989s          7  GoogleSheets_Menu._run:111
+  43      0.23ms      2.09ms          2  GoogleSheets_Flows.tqdm:50
+  44      0.23ms     11.49ms          3  GoogleSheets_Flows._summarize_final_status:880
+  45      0.22ms      3.351s          5  GoogleSheets_Master._repair_corrupted_street:1525
+  46      0.22ms     57.75ms          5  GoogleSheets_Flows._sanitize_row_for_write:2386
+  47      0.21ms     30.40ms         30  GoogleSheets_Utils._push:1655
+  48      0.20ms      0.26ms        324  GoogleSheets_Utils._allowed_field:1602
+  49      0.20ms    293.80ms          1  GoogleSheets_Flows.run_sheets_clean_and_split_after_purge_verify:1333
+  50      0.19ms      0.31ms         60  GoogleSheets_Utils.final_status_is_pass_ok:1467
+  51      0.18ms    201.91ms         70  GoogleSheets_Utils._canon_suburb_sheets:1246
+  52      0.15ms      0.55ms         30  GoogleSheets_Utils.normalize_number:260
+  53      0.14ms      0.25ms          6  GoogleSheets_Master._canon_header_cols:139
+  54      0.13ms      0.28ms         40  GoogleSheets_Utils._has_digits:198
+  55      0.12ms      8.21ms          5  GoogleSheets_Utils._choose_best_coordinate:509
+  56      0.12ms      3.74ms         35  GoogleSheets_Utils._canon_text:188
+  57      0.11ms     31.789s          7  GoogleSheets_Menu.stop:90
+  58      0.11ms     56.34ms         10  GoogleSheets_Flows._canon_key:1791
+  59      0.10ms     31.857s          2  GoogleSheets_Menu._run_option1_clean_only:1291
+  60      0.10ms     31.790s         14  GoogleSheets_Menu.progress_stage:127
+  61      0.09ms     53.07ms         10  GoogleSheets_Flows._canon_key:1446
+  62      0.09ms      4.37ms          5  GoogleSheets_Utils._house_digits_from_number:382
+  63      0.09ms     23.29ms          5  GoogleSheets_Flows._should_fail_row:2497
+  64      0.08ms     90.26ms         10  GoogleSheets_Utils._enforce_postcode_whitelist:1542
+  65      0.08ms      1.94ms          2  GoogleSheets_Utils.audit_blank_auckland_rows:1993
+  66      0.08ms      5.57ms          1  GoogleSheets_Utils._init_suburb_whitelist:1170
+  67      0.08ms      8.19ms          2  GoogleSheets_Flows._extend_fieldnames_with_audit:2336
+  68      0.07ms     53.50ms          5  GoogleSheets_Utils.backfill_suburb_postcode_for_row:1752
+  69      0.07ms      0.82ms         14  GoogleSheets_Menu.clear_line:82
+  70      0.07ms     16.00ms          9  GoogleSheets_Utils.<genexpr>:1671
+  71      0.07ms      0.09ms         72  GoogleSheets_Flows._is_allowed:235
+  72      0.07ms     30.61ms         26  GoogleSheets_Utils._open_csv_text_best_effort:856
+  73      0.07ms     49.01ms          5  GoogleSheets_Utils._accept_geocode_update:883
+  74      0.06ms      0.08ms          1  GoogleSheets_Utils._normalize_dict:1265
+  75      0.06ms      0.09ms         60  GoogleSheets_Utils.<genexpr>:199
+  76      0.06ms      6.30ms          5  GoogleSheets_Flows._restore_coords_if_missing:1486
+  77      0.06ms     10.03ms          5  GoogleSheets_Utils.gs_strip_leading_duplicate_number_from_street:392
+  78      0.06ms      0.07ms         20  GoogleSheets_Utils._combine_unit_and_number:414
+  79      0.05ms      6.87ms          1  GoogleSheets_Log.performance_stop:444
+  80      0.05ms     10.02ms          5  GoogleSheets_Flows._numbers_match:168
+  81      0.05ms      6.87ms          6  GoogleSheets_Master._looks_like_master_csv:152
+  82      0.05ms     13.15ms          5  GoogleSheets_Flows._street_suburb_matches_old:2482
+  83      0.04ms     64.43ms          5  GoogleSheets_Flows._route_by_final_status:759
+  84      0.04ms      6.51ms          9  GoogleSheets_Master._normalize_ap_num:1084
+  85      0.04ms     10.11ms          6  GoogleSheets_Master.resolve_master_csv_path:227
+  86      0.04ms      0.06ms         50  GoogleSheets_Utils._as_str:1326
+  87      0.04ms      0.30ms          6  GoogleSheets_Flows.stemmed:463
+  88      0.04ms      0.10ms          7  GoogleSheets_Menu.__init__:68
+  89      0.04ms      7.16ms          2  GoogleSheets_Master._ensure_sqlite_from_csv:407
+  90      0.04ms      3.32ms          5  GoogleSheets_CoreLite_Geocode._maybe_swap_latlon:693
+  91      0.03ms     61.01ms          5  GoogleSheets_Utils.route_row_writers_by_final_status:1513
+  92      0.03ms      0.03ms         18  GoogleSheets_Utils.audit_log_only_keys:1120
+  93      0.03ms     13.26ms          6  GoogleSheets_Master.resolve_master_paths:96
+  94      0.03ms      0.04ms         10  GoogleSheets_Flows._notes_has_new_street_ci:445
+  95      0.03ms      0.05ms          5  GoogleSheets_Master._sanitize:1152
+  96      0.03ms      0.05ms          5  GoogleSheets_Utils._set_meta:546
+  97      0.03ms     31.857s          2  GoogleSheets_CoreLite.run_with_cancel:134
+  98      0.03ms      0.05ms          5  GoogleSheets_Flows._clean_notes_and_language:357
+  99      0.03ms      1.63ms          1  GoogleSheets_Flows.cleanup_routed_intermediate_csvs:652
+ 100      0.03ms     63.48ms          3  GoogleSheets_Menu._enforce:1310
+
+----------------------------------------------------------------------------------------------------
+MODULE TOTALS — SELF TIME
+----------------------------------------------------------------------------------------------------
+Rank        Self      Calls    Funcs  Module
+   1      3.262s    1997840       21  GoogleSheets_Log
+   2    215.68ms      34037       18  GoogleSheets_Master
+   3    145.09ms     165898       43  GoogleSheets_Utils
+   4      2.47ms        258       34  GoogleSheets_Flows
+   5      0.76ms         69       12  GoogleSheets_Menu
+   6      0.05ms         10        2  GoogleSheets_CoreLite_Geocode
+   7      0.03ms          2        1  GoogleSheets_CoreLite
+
+----------------------------------------------------------------------------------------------------
+HOW TO READ THIS FILE
+----------------------------------------------------------------------------------------------------
+Cum  = function time including functions it called. Use this to find slow pipeline branches.
+Self = time spent inside the function itself, excluding child calls. Use this to find expensive implementation code.
+Module totals use Self time so nested calls are not double-counted.

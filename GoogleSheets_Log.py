@@ -331,6 +331,568 @@ def init_logger(
     return _LOG_PATH
 
 
+# C:\Users\brook\OneDrive\Desktop\Coding\Territory Assistant\GoogleSheets_Log.py
+
+def _performance_project_root(app_root=None):
+    """
+    Resolve the Territory Assistant project root for performance profiling.
+
+    Priority:
+    1) Explicit app_root
+    2) Parent of the active Log folder
+    3) Frozen executable folder
+    4) Folder containing GoogleSheets_Log.py
+    """
+    from pathlib import Path
+    import sys
+
+    if app_root is not None:
+        try:
+            return Path(app_root).resolve()
+        except Exception:
+            pass
+
+    try:
+        if _LOG_PATH is not None:
+            p = Path(_LOG_PATH).resolve()
+
+            if p.parent.name.lower() == "log":
+                return p.parent.parent
+    except Exception:
+        pass
+
+    try:
+        if getattr(sys, "frozen", False):
+            return Path(sys.executable).resolve().parent
+    except Exception:
+        pass
+
+    return Path(__file__).resolve().parent
+
+
+def performance_start(
+    label: str = "Google Sheets run",
+    app_root=None,
+) -> None:
+    """
+    Start one compact run-level performance profile.
+
+    Important:
+    - Profiles only while an actual menu option is executing.
+    - Does NOT profile idle menu/input waiting time.
+    - Uses cProfile from the Python standard library.
+    - Keeps profiling independent from the normal support log.
+    - The output file is replaced for each new Option 1/2/3 run.
+
+    Output:
+        <APP_ROOT>/Log/GoogleSheets_Performance.txt
+    """
+    import cProfile
+    import time
+
+    # Defensive: if a previous profile somehow remained active,
+    # finish it cleanly before starting another.
+    try:
+        if getattr(performance_start, "_active", False):
+            performance_stop(status="RESTARTED")
+    except Exception:
+        pass
+
+    root = _performance_project_root(app_root)
+
+    try:
+        log_dir = root / "Log"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        perf_path = log_dir / "GoogleSheets_Performance.txt"
+    except Exception:
+        perf_path = root / "GoogleSheets_Performance.txt"
+
+    profiler = cProfile.Profile()
+
+    performance_start._active = True
+    performance_start._profiler = profiler
+    performance_start._label = str(label or "Google Sheets run")
+    performance_start._root = root
+    performance_start._path = perf_path
+    performance_start._wall_start = time.perf_counter()
+    performance_start._started_at = _now()
+    performance_start._run_id = _RUN_ID or "-"
+
+    # Write a tiny RUNNING marker immediately.
+    # If the process is forcibly terminated, this file still tells us
+    # which run had started.
+    try:
+        with perf_path.open(
+            "w",
+            encoding="utf-8",
+            errors="replace",
+        ) as f:
+            f.write(
+                "Google Sheets Performance Log\n"
+                f"Run: {performance_start._run_id}\n"
+                f"Label: {performance_start._label}\n"
+                f"Started: {performance_start._started_at}\n"
+                f"Project Root: {root}\n"
+                "Status: RUNNING\n"
+            )
+    except Exception:
+        pass
+
+    profiler.enable()
+
+
+def performance_stop(
+    status: str = "OK",
+) -> Optional[Path]:
+    """
+    Stop the active run-level profile and write a compact slowest-first report.
+
+    Sections:
+    - Run summary
+    - Slowest functions by cumulative time
+    - Slowest functions by self time
+    - Module totals by self time
+
+    Timing meanings:
+    - Cumulative time includes child calls.
+    - Self time excludes child calls.
+    - Module totals use self time so nested calls are not double-counted.
+    """
+    import time
+    import pstats
+
+    from pathlib import Path
+    from collections import defaultdict
+
+    if not getattr(performance_start, "_active", False):
+        return getattr(performance_start, "_path", None)
+
+    profiler = getattr(
+        performance_start,
+        "_profiler",
+        None,
+    )
+
+    root = Path(
+        getattr(
+            performance_start,
+            "_root",
+            _performance_project_root(),
+        )
+    ).resolve()
+
+    perf_path = Path(
+        getattr(
+            performance_start,
+            "_path",
+            root / "Log" / "GoogleSheets_Performance.txt",
+        )
+    )
+
+    label = str(
+        getattr(
+            performance_start,
+            "_label",
+            "Google Sheets run",
+        )
+    )
+
+    started_at = str(
+        getattr(
+            performance_start,
+            "_started_at",
+            "",
+        )
+    )
+
+    run_id = str(
+        getattr(
+            performance_start,
+            "_run_id",
+            _RUN_ID or "-",
+        )
+    )
+
+    wall_start = float(
+        getattr(
+            performance_start,
+            "_wall_start",
+            time.perf_counter(),
+        )
+    )
+
+    try:
+        if profiler is not None:
+            profiler.disable()
+    finally:
+        performance_start._active = False
+
+    wall_s = max(
+        0.0,
+        time.perf_counter() - wall_start,
+    )
+
+    rows = []
+
+    module_totals = defaultdict(
+        lambda: {
+            "self_s": 0.0,
+            "calls": 0,
+            "functions": set(),
+        }
+    )
+
+    try:
+        stats = pstats.Stats(profiler)
+
+        for (
+            filename,
+            line_no,
+            func_name,
+        ), stat in stats.stats.items():
+
+            cc, nc, tt, ct, callers = stat
+
+            try:
+                fp = Path(filename).resolve()
+            except Exception:
+                continue
+
+            # Only include Python source owned by Territory Assistant.
+            # This keeps the file compact and avoids flooding it with
+            # Python stdlib / pandas / numpy / requests internals.
+            try:
+                fp.relative_to(root)
+            except Exception:
+                continue
+
+            if fp.suffix.lower() not in {
+                ".py",
+                ".pyw",
+            }:
+                continue
+
+            try:
+                rel = fp.relative_to(root)
+
+                module_name = ".".join(
+                    rel.with_suffix("").parts
+                )
+
+            except Exception:
+                module_name = fp.stem
+
+            row = {
+                "module": module_name,
+                "function": str(func_name),
+                "line": int(line_no),
+                "primitive_calls": int(cc),
+                "calls": int(nc),
+                "self_s": float(tt),
+                "cum_s": float(ct),
+            }
+
+            rows.append(row)
+
+            module_data = module_totals[module_name]
+
+            module_data["self_s"] += float(tt)
+            module_data["calls"] += int(nc)
+
+            module_data["functions"].add(
+                (
+                    str(func_name),
+                    int(line_no),
+                )
+            )
+
+    except Exception as e:
+        rows = []
+
+        module_totals = defaultdict(
+            lambda: {
+                "self_s": 0.0,
+                "calls": 0,
+                "functions": set(),
+            }
+        )
+
+        profile_error = repr(e)
+
+    else:
+        profile_error = ""
+
+    rows_by_cum = sorted(
+        rows,
+        key=lambda r: (
+            r["cum_s"],
+            r["self_s"],
+        ),
+        reverse=True,
+    )
+
+    rows_by_self = sorted(
+        rows,
+        key=lambda r: (
+            r["self_s"],
+            r["cum_s"],
+        ),
+        reverse=True,
+    )
+
+    modules_sorted = sorted(
+        module_totals.items(),
+        key=lambda kv: kv[1]["self_s"],
+        reverse=True,
+    )
+
+    total_calls = sum(
+        r["calls"]
+        for r in rows
+    )
+
+    unique_functions = len(rows)
+
+    def _fmt_time(seconds: float) -> str:
+        s = float(seconds)
+
+        if s >= 1.0:
+            return f"{s:.3f}s"
+
+        return f"{s * 1000.0:.2f}ms"
+
+    def _function_label(r: dict) -> str:
+        return (
+            f'{r["module"]}.'
+            f'{r["function"]}:'
+            f'{r["line"]}'
+        )
+
+    try:
+        perf_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        with perf_path.open(
+            "w",
+            encoding="utf-8",
+            errors="replace",
+        ) as f:
+
+            f.write("=" * 100 + "\n")
+            f.write(
+                "GOOGLE SHEETS PERFORMANCE LOG\n"
+            )
+            f.write("=" * 100 + "\n")
+
+            f.write(
+                f"Run ID: {run_id}\n"
+            )
+
+            f.write(
+                f"Label: {label}\n"
+            )
+
+            f.write(
+                f"Started: {started_at}\n"
+            )
+
+            f.write(
+                f"Finished: {_now()}\n"
+            )
+
+            f.write(
+                f"Status: {status}\n"
+            )
+
+            f.write(
+                f"Wall Time: {wall_s:.3f}s\n"
+            )
+
+            f.write(
+                f"Project Root: {root}\n"
+            )
+
+            f.write(
+                f"Timed Project Calls: {total_calls}\n"
+            )
+
+            f.write(
+                f"Unique Project Functions: "
+                f"{unique_functions}\n"
+            )
+
+            if profile_error:
+                f.write(
+                    f"Profiler Parse Error: "
+                    f"{profile_error}\n"
+                )
+
+            # =========================================================
+            # CUMULATIVE
+            # =========================================================
+
+            f.write(
+                "\n"
+                + "-" * 100
+                + "\n"
+            )
+
+            f.write(
+                "SLOWEST FUNCTIONS — "
+                "CUMULATIVE TIME\n"
+            )
+
+            f.write(
+                "-" * 100
+                + "\n"
+            )
+
+            f.write(
+                f'{"Rank":>4}  '
+                f'{"Cum":>10}  '
+                f'{"Self":>10}  '
+                f'{"Calls":>9}  '
+                f'Function\n'
+            )
+
+            for i, r in enumerate(
+                rows_by_cum[:100],
+                1,
+            ):
+                f.write(
+                    f'{i:>4}  '
+                    f'{_fmt_time(r["cum_s"]):>10}  '
+                    f'{_fmt_time(r["self_s"]):>10}  '
+                    f'{r["calls"]:>9}  '
+                    f'{_function_label(r)}\n'
+                )
+
+            # =========================================================
+            # SELF TIME
+            # =========================================================
+
+            f.write(
+                "\n"
+                + "-" * 100
+                + "\n"
+            )
+
+            f.write(
+                "SLOWEST FUNCTIONS — "
+                "SELF TIME\n"
+            )
+
+            f.write(
+                "-" * 100
+                + "\n"
+            )
+
+            f.write(
+                f'{"Rank":>4}  '
+                f'{"Self":>10}  '
+                f'{"Cum":>10}  '
+                f'{"Calls":>9}  '
+                f'Function\n'
+            )
+
+            for i, r in enumerate(
+                rows_by_self[:100],
+                1,
+            ):
+                f.write(
+                    f'{i:>4}  '
+                    f'{_fmt_time(r["self_s"]):>10}  '
+                    f'{_fmt_time(r["cum_s"]):>10}  '
+                    f'{r["calls"]:>9}  '
+                    f'{_function_label(r)}\n'
+                )
+
+            # =========================================================
+            # MODULE TOTALS
+            # =========================================================
+
+            f.write(
+                "\n"
+                + "-" * 100
+                + "\n"
+            )
+
+            f.write(
+                "MODULE TOTALS — SELF TIME\n"
+            )
+
+            f.write(
+                "-" * 100
+                + "\n"
+            )
+
+            f.write(
+                f'{"Rank":>4}  '
+                f'{"Self":>10}  '
+                f'{"Calls":>9}  '
+                f'{"Funcs":>7}  '
+                f'Module\n'
+            )
+
+            for i, (
+                module_name,
+                data,
+            ) in enumerate(
+                modules_sorted,
+                1,
+            ):
+
+                f.write(
+                    f'{i:>4}  '
+                    f'{_fmt_time(data["self_s"]):>10}  '
+                    f'{data["calls"]:>9}  '
+                    f'{len(data["functions"]):>7}  '
+                    f'{module_name}\n'
+                )
+
+            # =========================================================
+            # HELP
+            # =========================================================
+
+            f.write(
+                "\n"
+                + "-" * 100
+                + "\n"
+            )
+
+            f.write(
+                "HOW TO READ THIS FILE\n"
+            )
+
+            f.write(
+                "-" * 100
+                + "\n"
+            )
+
+            f.write(
+                "Cum  = function time including "
+                "functions it called. "
+                "Use this to find slow pipeline branches.\n"
+            )
+
+            f.write(
+                "Self = time spent inside the "
+                "function itself, excluding child calls. "
+                "Use this to find expensive implementation code.\n"
+            )
+
+            f.write(
+                "Module totals use Self time so "
+                "nested calls are not double-counted.\n"
+            )
+
+    except Exception:
+        # Performance logging must never break Territory Assistant.
+        pass
+
+    return perf_path
 
 def console(
     msg: str,

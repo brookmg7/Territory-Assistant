@@ -11,6 +11,7 @@ REM - Finds Python.
 REM - Offers to install Python 3.13 if missing.
 REM - Starts GoogleSheets_Menu.py.
 REM - Main setup/logging is handled by GoogleSheets_Menu.py.
+REM - Creates a BRAND-NEW support log for every launcher run.
 REM ============================================================
 
 REM Keep the window open when double-clicked
@@ -48,7 +49,14 @@ if not exist "%LOG_DIR%" (
     endlocal & exit /b 1
 )
 
-> "%SUPPORT_LOG%" echo Territory Assistant - Google Sheets Support Log
+REM ============================================================
+REM FRESH SUPPORT LOG FOR EVERY NEW BAT RUN
+REM ============================================================
+REM Clear/truncate the previous support log before ANY new
+REM launcher/Python/runtime information is written.
+type nul > "%SUPPORT_LOG%"
+
+>> "%SUPPORT_LOG%" echo Territory Assistant - Google Sheets Support Log
 >> "%SUPPORT_LOG%" echo Started: %DATE% %TIME%
 >> "%SUPPORT_LOG%" echo APP_ROOT: %APP_ROOT%
 >> "%SUPPORT_LOG%" echo SCRIPT: %SCRIPT%
@@ -263,6 +271,7 @@ exit /b
 echo.
 echo Starting Territory Assistant...
 echo.
+
 >> "%SUPPORT_LOG%" echo [%DATE% %TIME%] Starting GoogleSheets_Menu.py
 >> "%SUPPORT_LOG%" echo [%DATE% %TIME%] Command: %PY_EXE% %PY_ARGS% -u %SCRIPT% %*
 
@@ -288,6 +297,7 @@ echo Finished
 echo ============================================================
 echo Exit code: %RC%
 echo.
+
 if "%RC%"=="0" (
     echo The app closed normally.
 ) else (
@@ -296,8 +306,9 @@ if "%RC%"=="0" (
     echo For support, send the whole Log folder.
     echo Important files:
     echo   Log\Run_GoogleSheets_support_log.txt
-    echo   Log\GoogleSheets_All.txt
+    echo   Log\GoogleSheets_Performance.txt
 )
+
 echo ============================================================
 echo.
 echo Press any key to close this window...
